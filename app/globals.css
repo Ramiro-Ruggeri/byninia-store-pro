@@ -1,0 +1,181 @@
+/* ---------------- BYNINIA — globals.css (reset seguro) ---------------- */
+
+/* Tailwind base */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------- 1) Tokens y base ---------------- */
+:root {
+  --radius: 18px;
+
+  /* Paleta base */
+  --color-accent: 255 0 102; /* magenta/rosa neón */
+  --color-bg-deep: 10 10 10; /* fondo principal (negro) */
+  --color-bg-card: 20 20 20; /* tarjetas */
+  --color-text-main: 241 241 241; /* texto principal */
+  --color-text-subtle: 150 150 150; /* texto sutil */
+
+  /* alias */
+  --by-card: rgb(var(--color-bg-card));
+  --by-accent: rgb(var(--color-accent));
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: rgb(var(--color-bg-deep));
+  color: rgb(var(--color-text-main));
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* IMPORTANTE: no poner opacity, filters, ni backdrop aquí */
+}
+
+/* Links básicos */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+::selection {
+  background: rgba(var(--color-accent), 0.22);
+  color: #fff;
+}
+
+/* Foco accesible */
+:focus-visible {
+  outline: 2px solid var(--by-accent);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+/* ---------------- 2) Utilidades de tipografía ---------------- */
+.h-eyebrow {
+  @apply text-[11px] uppercase tracking-[.28em] font-medium text-white/50;
+}
+.h-title {
+  @apply text-4xl md:text-6xl font-extrabold tracking-tighter;
+}
+.p-body {
+  @apply text-base md:text-lg leading-relaxed text-white/70;
+}
+
+/* ---------------- 3) Tarjetas / vidrio suave ---------------- */
+.card-glass {
+  @apply rounded-2xl bg-[var(--by-card)];
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 10px 38px rgba(0, 0, 0, 0.55);
+}
+
+/* Imagen con transición suave */
+.img-smooth {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+/* Visually hidden util */
+.visually-hidden {
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap;
+}
+
+/* ---------------- 4) Transiciones sutiles ---------------- */
+.link,
+a[href] {
+  transition: color 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
+}
+.link:hover,
+a[href]:hover {
+  opacity: 0.92;
+}
+button {
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+}
+button:hover {
+  transform: translateY(-1px);
+}
+
+/* ---------------- 5) Fondo de rejilla (si lo usas en el Hero) ---------------- */
+.bg-grid {
+  background-image: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.06) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ---------------- 6) Cursor glow (NO tapar interacciones) ---------------- */
+.cursor-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgba(var(--color-accent), 0.14),
+    transparent 70%
+  );
+  transform: translate(-50%, -50%);
+  mix-blend-mode: screen;
+  filter: blur(1px);
+  opacity: 0.8;
+}
+@media (max-width: 768px) {
+  .cursor-glow {
+    display: none;
+  }
+}
+
+/* ---------------- 7) Efecto brillo logo (opcional) ---------------- */
+.logo-shine {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.logo-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.28) 40%,
+    transparent 80%
+  );
+  transform: translateX(-120%);
+  filter: blur(1px);
+}
+.logo-shine:hover::after {
+  animation: logoShine 1.2s ease forwards;
+}
+
+@keyframes logoShine {
+  to {
+    transform: translateX(120%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .logo-shine::after {
+    animation: none;
+    transform: none;
+  }
+}
