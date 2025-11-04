@@ -180,3 +180,63 @@ export async function getProductByHandle(handle: string) {
     card: toCard(prod) as ProductCardProps,
   };
 }
+
+/* =========================
+   NUEVO: listProductsPaged
+   ========================= */
+
+export type PagedResult<T> = {
+  items: T[];
+  total: number;
+  page: number; // 1-based
+  perPage: number; // = limit
+  pages: number;
+};
+
+/**
+ * Igual que listProducts, pero devuelve metadata de paginación.
+ * Acepta las mismas opciones (limit/page/q/category_id). 'limit' ≡ 'perPage'.
+ */
+export async function listProductsPaged(
+  opts: ListOpts = 24
+): Promise<PagedResult<ProductCardProps>> {
+  const perPage =
+    typeof opts === "number" ? opts : Math.max(1, opts.limit ?? 24);
+  const page = typeof opts === "number" ? 1 : Math.max(1, opts.page ?? 1);
+  const offset = (page - 1) * perPage;
+
+  const url = new URL(`${BASE_URL}/store/products`);
+  url.searchParams.set("limit", String(perPage));
+  url.searchParams.set("offset", String(offset));
+  if (typeof opts !== "number" && opts.q) {
+    url.searchParams.set("q", opts.q);
+  }
+  if (typeof opts !== "number" && opts.category_id) {
+    url.searchParams.set("category_id", opts.category_id);
+  }
+
+  // Medusa Store API suele devolver { products, count, offset, limit }
+  const data = await medusaGet<{
+    products: any[];
+    count?: number;
+    limit?: number;
+    offset?: number;
+  }>(url.toString().replace(BASE_URL, ""));
+
+  const items = (data.products || []).map(toCard);
+  const total =
+    typeof data.count === "number" && data.count >= 0
+      ? data.count
+      : // fallback por si algún backend no devuelve count
+        offset + items.length + (items.length === perPage ? perPage : 0);
+
+  const pages = Math.max(1, Math.ceil(total / perPage));
+
+  return {
+    items,
+    total,
+    page,
+    perPage,
+    pages,
+  };
+}
