@@ -1,44 +1,68 @@
+// app/page.tsx
 import Link from "next/link";
-import Hero from "@/components/organisms/Hero"; // Asumimos que Hero no necesita cambios por ahora
+import Hero from "@/components/organisms/Hero";
 import ProductGrid from "@/components/organisms/ProductGrid";
 import Marquee from "@/components/ux/Marquee";
 import SectionTitle from "@/components/ux/SectionTitle";
-import { listProducts } from "@/lib/medusa-data";
-import { Zap, Shield, Rocket, MapPin } from "lucide-react"; // Íconos para features
+import { Zap, Shield, Rocket, MapPin } from "lucide-react";
+import { getProducts } from "@/lib/medusa"; // ⬅️ reemplaza listProducts por esto
 
-// --- Componentes Reutilizados con Estilo Mejorado ---
+/* ---------------- Reutilizables ---------------- */
 
-// 1. Tira de Características (FeaturesStrip)
 function FeaturesStrip() {
   const items = [
     {
       title: "Anti-robo",
       desc: "Cadena + portaencendedor seguro.",
-      icon: <Shield size={20} className="text-by-accent" />,
+      icon: (
+        <Shield
+          size={20}
+          className="text-by-accent"
+          style={{ color: "rgb(var(--color-accent))" }}
+        />
+      ),
     },
     {
       title: "Hecho en CBA",
       desc: "Diseño independiente local.",
-      icon: <MapPin size={20} className="text-by-accent" />,
+      icon: (
+        <MapPin
+          size={20}
+          className="text-by-accent"
+          style={{ color: "rgb(var(--color-accent))" }}
+        />
+      ),
     },
     {
       title: "Acero premium",
       desc: "Durabilidad & look rockstar.",
-      icon: <Zap size={20} className="text-by-accent" />,
+      icon: (
+        <Zap
+          size={20}
+          className="text-by-accent"
+          style={{ color: "rgb(var(--color-accent))" }}
+        />
+      ),
     },
     {
       title: "Envío Express",
       desc: "A todo el país.",
-      icon: <Rocket size={20} className="text-by-accent" />,
+      icon: (
+        <Rocket
+          size={20}
+          className="text-by-accent"
+          style={{ color: "rgb(var(--color-accent))" }}
+        />
+      ),
     },
   ];
+
   return (
-    <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="mx-auto max-w-7xl px-4 mt-10 grid grid-cols-2 md:grid-cols-4 gap-4">
       {items.map((i) => (
         <div
           key={i.title}
-          // Usamos 'card-glass' que aplica el nuevo estilo de sombra y borde
-          className="card-glass p-5 transition-all hover:scale-[1.01] hover:shadow-deep"
+          className="card-glass p-5 transition-transform hover:scale-[1.01] shadow-xl hover:shadow-2xl"
         >
           <div className="flex items-center gap-3">
             {i.icon}
@@ -51,7 +75,6 @@ function FeaturesStrip() {
   );
 }
 
-// 2. Cómo Funciona (HowItWorks)
 function HowItWorks() {
   const steps = [
     { n: 1, t: "Encastra", d: "Colocá tu encendedor en el porta." },
@@ -59,18 +82,17 @@ function HowItWorks() {
     { n: 3, t: "Olvidate", d: "No se pierde nunca más el fuego." },
   ];
   return (
-    <section className="mt-24">
-      {/* Usamos las clases de tipografía mejoradas (h-eyebrow, h-title) */}
+    <section className="mx-auto max-w-7xl px-4 mt-24">
       <SectionTitle title="Cómo se usa" eyebrow="Rápido & seguro" />
       <div className="grid gap-6 md:grid-cols-3 mt-8">
         {steps.map((s) => (
-          <div
-            key={s.n}
-            // Usamos 'card-glass' nuevamente para consistencia
-            className="card-glass p-6 transition-all"
-          >
-            {/* El número de paso ahora es más visible y con acento */}
-            <div className="text-xl font-bold text-by-accent/80">0{s.n}</div>
+          <div key={s.n} className="card-glass p-6 shadow-lg">
+            <div
+              className="text-xl font-bold"
+              style={{ color: "rgb(var(--color-accent))" }}
+            >
+              0{s.n}
+            </div>
             <div className="font-extrabold text-2xl mt-1">{s.t}</div>
             <div className="text-base text-white/70 mt-2">{s.d}</div>
           </div>
@@ -80,11 +102,10 @@ function HowItWorks() {
   );
 }
 
-// 3. Reseñas (SocialProof)
 function SocialProof() {
   return (
-    <section className="mt-24">
-      <div className="rounded-[40px] bg-by-card p-8 md:p-12 border border-by-line shadow-deep">
+    <section className="mx-auto max-w-7xl px-4 mt-24">
+      <div className="rounded-[40px] bg-[var(--by-card)] p-8 md:p-12 border border-white/10 shadow-2xl">
         <SectionTitle
           title="Lo que dice la crew"
           eyebrow="Testimonios de BYNINIA"
@@ -97,7 +118,8 @@ function SocialProof() {
           ].map((q, i) => (
             <blockquote
               key={i}
-              className="card-glass p-5 text-lg italic text-white/80 border-l-4 border-by-accent/60"
+              className="card-glass p-5 text-lg italic text-white/80 border-l-4"
+              style={{ borderColor: "rgb(var(--color-accent))" }}
             >
               {q}
             </blockquote>
@@ -108,40 +130,42 @@ function SocialProof() {
   );
 }
 
-// 4. Llamado a la Acción Final (FinalCTA)
 function FinalCTA() {
-  // Clase para el botón principal con acento y brillo
-  const PrimaryButtonClass =
-    "rounded-lg px-8 py-3 text-lg bg-by-accent text-black font-extrabold transition-all shadow-glow-lg hover:shadow-glow-sm hover:scale-[1.02]";
-  // Clase para el botón secundario con borde sutil
-  const SecondaryButtonClass =
+  const PrimaryBtn =
+    "rounded-lg px-8 py-3 text-lg font-extrabold text-black transition-transform hover:scale-[1.02]";
+  const SecondaryBtn =
     "rounded-lg px-8 py-3 text-lg border-2 border-white/20 text-white/80 hover:border-white/40 transition-colors hover:text-white";
 
   return (
-    <section className="mt-24 mb-16">
-      <div
-        // Fondo más impactante y centrado
-        className="rounded-3xl border border-white/10 bg-by-card 
-                   bg-[radial-gradient(50%_50%_at_50%_0%,rgba(var(--color-accent),0.1)_0%,transparent_70%)] 
-                   p-12 text-center shadow-deep"
-      >
+    <section className="mx-auto max-w-7xl px-4 mt-24 mb-16">
+      <div className="rounded-3xl border border-white/10 bg-[var(--by-card)] p-12 text-center shadow-2xl bg-[radial-gradient(50%_50%_at_50%_0%,rgba(255,0,102,0.10)_0%,transparent_70%)]">
         <h3 className="h-title text-4xl md:text-5xl font-black max-w-4xl mx-auto">
-          Listo para subir el <span className="text-by-accent">level</span> de
-          tu outfit nocturno?
+          Listo para subir el{" "}
+          <span
+            className="text-by-accent"
+            style={{ color: "rgb(var(--color-accent))" }}
+          >
+            level
+          </span>{" "}
+          de tu outfit nocturno?
         </h3>
         <p className="p-body max-w-2xl mx-auto mt-4">
           Inchoriables BYNINIA – Accesorios diseñados para la noche. Ediciones
           limitadas, producción local en Córdoba.
         </p>
         <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/products" className={PrimaryButtonClass}>
+          <Link
+            href="/products"
+            className={PrimaryBtn}
+            style={{ background: "rgb(var(--color-accent))" }}
+          >
             Ver Catálogo
           </Link>
           <a
             href="https://wa.me/5493510000000"
             target="_blank"
             rel="noreferrer"
-            className={SecondaryButtonClass}
+            className={SecondaryBtn}
           >
             Consultar por WhatsApp
           </a>
@@ -151,23 +175,18 @@ function FinalCTA() {
   );
 }
 
-// --- Componente Principal ---
+/* ---------------- Página ---------------- */
 
 export default async function Home() {
-  // Nota: Asumo que listProducts() está funcionando correctamente
-  const products = await listProducts();
+  // 👇 llamamos Medusa real
+  const { products } = await getProducts(24, 0);
 
   return (
     <>
-      {/* 1. HERO - Asumimos que Hero.tsx ya tiene el estilo h-title/p-body */}
       <Hero />
-
-      {/* 2. Features */}
       <FeaturesStrip />
 
-      {/* 3. Productos Destacados */}
-      <section className="mt-24">
-        {/* Usamos el h-eyebrow mejorado */}
+      <section className="mx-auto max-w-7xl px-4 mt-24">
         <SectionTitle
           title="Inchoriables destacados"
           eyebrow="Llevá el fuego con vos"
@@ -177,8 +196,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 4. Marquee - Ahora con más margen superior */}
-      <section className="mt-24">
+      <section className="mx-auto max-w-7xl px-4 mt-24">
         <Marquee
           items={[
             "NO SE TE PIERDE EL FUEGO",
@@ -189,13 +207,8 @@ export default async function Home() {
         />
       </section>
 
-      {/* 5. Cómo Funciona */}
       <HowItWorks />
-
-      {/* 6. Reseñas */}
       <SocialProof />
-
-      {/* 7. CTA Final */}
       <FinalCTA />
     </>
   );

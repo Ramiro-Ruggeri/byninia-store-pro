@@ -5,7 +5,18 @@ import Link from "next/link";
 import { useState } from "react";
 import { useCart } from "@/store/cart";
 
-/** Link compacto y accesible */
+/* ---------------- Helpers ---------------- */
+const FALLBACK_WA = "5493510000000";
+function getWaPhone(): string {
+  const env = process.env.NEXT_PUBLIC_WA_PHONE?.trim();
+  return env && /^\d+$/.test(env) ? env : FALLBACK_WA;
+}
+function waUrl(message?: string) {
+  const base = `https://wa.me/${getWaPhone()}`;
+  return message ? `${base}?text=${encodeURIComponent(message)}` : base;
+}
+
+/** Link compacto y accesible (interno) */
 function NavLink({
   href,
   children,
@@ -35,23 +46,26 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-black/55 backdrop-blur-md">
-      {/* Barra principal: 3 zonas en desktop, fila simple en mobile */}
+      {/* Barra principal */}
       <div className="mx-auto max-w-7xl px-4 h-16 grid grid-cols-3 items-center">
-        {/* IZQUIERDA: navegación principal (desktop) */}
-        <nav className="hidden md:flex items-center gap-6">
-          <NavLink href="/products">Catálogo</NavLink>
-          <NavLink href="/about">Sobre</NavLink>
-          <NavLink href="/contact">Contacto</NavLink>
-          <NavLink href="/policies">Envíos & Devoluciones</NavLink>
-        </nav>
+        {/* IZQ: (oculto en desktop porque pediste menu hamburguesa) */}
+        <div className="flex items-center gap-2">
+          {/* Botón menú (desktop + mobile) */}
+          <button
+            onClick={() => setOpen(true)}
+            aria-label="Abrir menú"
+            className="rounded-md border border-white/20 px-3 py-1 text-sm hover:border-white/40 transition"
+          >
+            {/* icono hamburguesa simple */}☰
+          </button>
+        </div>
 
-        {/* CENTRO: logo (siempre visible) */}
+        {/* CENTRO: logo */}
         <div className="justify-self-center">
           <Link href="/" aria-label="Inicio BYNINIA" className="block">
-            {/* Ajustá alto/ancho para el protagonismo */}
             <div className="relative h-9 w-[180px] md:h-10 md:w-[220px]">
               <Image
-                src="/logos/TITULO.png" // <-- tu archivo
+                src="/logos/TITULO.png"
                 alt="BYNINIA"
                 fill
                 priority
@@ -62,27 +76,8 @@ export default function Header() {
           </Link>
         </div>
 
-        {/* DERECHA: acciones (cart + redes). En mobile, sólo cart + menú */}
+        {/* DER: carrito */}
         <div className="flex items-center justify-end gap-3">
-          {/* Redes visibles en desktop */}
-          <a
-            href="https://www.instagram.com/byninia"
-            target="_blank"
-            rel="noreferrer"
-            className="hidden md:inline text-sm text-zinc-300 hover:text-white transition"
-          >
-            Instagram
-          </a>
-          <a
-            href="https://wa.me/5493510000000"
-            target="_blank"
-            rel="noreferrer"
-            className="hidden md:inline text-sm text-zinc-300 hover:text-white transition"
-          >
-            WhatsApp
-          </a>
-
-          {/* Carrito */}
           <button
             onClick={() => toggle(true)}
             className="rounded-full border border-white/20 px-3 py-1 text-sm hover:border-white/40 transition"
@@ -90,53 +85,117 @@ export default function Header() {
           >
             Carrito ({count})
           </button>
-
-          {/* Menú hamburguesa (solo mobile) */}
-          <button
-            onClick={() => setOpen((v) => !v)}
-            aria-label={open ? "Cerrar menú" : "Abrir menú"}
-            className="md:hidden rounded-md border border-white/20 px-3 py-1 text-sm hover:border-white/40 transition"
-          >
-            Menú
-          </button>
         </div>
       </div>
 
-      {/* MENÚ MOBILE: drawer simple */}
+      {/* DRAWER MENÚ (izquierda) */}
       {open && (
-        <div className="md:hidden border-t border-white/10 bg-black/92">
-          <div className="mx-auto max-w-7xl px-4 py-4 grid gap-3">
-            <NavLink href="/products" onClick={() => setOpen(false)}>
-              Catálogo
-            </NavLink>
-            <NavLink href="/about" onClick={() => setOpen(false)}>
-              Sobre
-            </NavLink>
-            <NavLink href="/contact" onClick={() => setOpen(false)}>
-              Contacto
-            </NavLink>
-            <NavLink href="/policies" onClick={() => setOpen(false)}>
-              Envíos & Devoluciones
-            </NavLink>
-            <a
-              href="https://www.instagram.com/byninia"
-              target="_blank"
-              rel="noreferrer"
-              className="text-sm text-zinc-300 hover:text-white transition"
-              onClick={() => setOpen(false)}
-            >
-              Instagram
-            </a>
-            <a
-              href="https://wa.me/5493510000000"
-              target="_blank"
-              rel="noreferrer"
-              className="text-sm text-zinc-300 hover:text-white transition"
-              onClick={() => setOpen(false)}
-            >
-              WhatsApp
-            </a>
-          </div>
+        <div
+          role="dialog"
+          aria-label="Menú"
+          className="fixed inset-0 z-[60]"
+          onClick={() => setOpen(false)}
+        >
+          {/* backdrop */}
+          <div className="absolute inset-0 bg-black/50" />
+
+          {/* panel */}
+          <aside
+            className="absolute left-0 top-0 h-dvh w-[92vw] sm:w-[420px] bg-by-card border-r border-white/10 shadow-2xl p-5 flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* header del panel */}
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 text-sm text-white/70">
+                <span className="inline-block h-2 w-2 rounded-full bg-by-accent" />
+                Menú
+              </div>
+              <button
+                onClick={() => setOpen(false)}
+                aria-label="Cerrar menú"
+                className="rounded-md border border-white/20 px-3 py-1 text-sm hover:border-white/40 transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* items */}
+            <nav className="mt-2 flex-1 overflow-y-auto pr-1">
+              <ul className="space-y-2">
+                <li>
+                  <Link
+                    href="/products"
+                    onClick={() => setOpen(false)}
+                    className="navfx-underline block rounded-xl px-3 py-3 text-[15px] text-white/90 hover:text-white transition"
+                  >
+                    Catálogo
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/about"
+                    onClick={() => setOpen(false)}
+                    className="navfx-underline block rounded-xl px-3 py-3 text-[15px] text-white/90 hover:text-white transition"
+                  >
+                    Sobre
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/contact"
+                    onClick={() => setOpen(false)}
+                    className="navfx-underline block rounded-xl px-3 py-3 text-[15px] text-white/90 hover:text-white transition"
+                  >
+                    Contacto
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/policies"
+                    onClick={() => setOpen(false)}
+                    className="navfx-underline block rounded-xl px-3 py-3 text-[15px] text-white/90 hover:text-white transition"
+                  >
+                    Envíos & Devoluciones
+                  </Link>
+                </li>
+
+                {/* EXTERNOS */}
+                <li className="pt-2">
+                  <a
+                    href="https://www.instagram.com/byninia"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="navfx-underline block rounded-xl px-3 py-3 text-[15px] text-white/90 hover:text-white transition"
+                  >
+                    Instagram
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={waUrl(
+                      "Hola! Vengo de la web BYNINIA. Quiero consultar por los inchoriables."
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="navfx-underline block rounded-xl px-3 py-3 text-[15px] text-white/90 hover:text-white transition"
+                  >
+                    WhatsApp
+                  </a>
+                </li>
+              </ul>
+            </nav>
+
+            {/* CTA al final */}
+            <div className="pt-3 border-t border-white/10">
+              <Link
+                href="/products"
+                onClick={() => setOpen(false)}
+                className="block text-center w-full rounded-xl bg-white text-black font-semibold px-4 py-3 hover:bg-white/90 transition"
+              >
+                Ver catálogo
+              </Link>
+            </div>
+          </aside>
         </div>
       )}
     </header>

@@ -32,7 +32,6 @@ body {
     "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
   /* IMPORTANTE: no poner opacity, filters, ni backdrop aquí */
 }
 
@@ -120,9 +119,12 @@ button:hover {
 }
 
 /* ---------------- 6) Cursor glow (NO tapar interacciones) ---------------- */
+/* Importante: el componente JS posiciona este círculo con top/left.
+   No usamos inset ni filtros “globales” que empañen la UI. */
 .cursor-glow {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
   pointer-events: none;
   z-index: 40;
   width: 180px;
@@ -177,5 +179,43 @@ button:hover {
   .logo-shine::after {
     animation: none;
     transform: none;
+  }
+}
+
+/* ---------------- 8) FX premium para el drawer del menú ---------------- */
+/* Subrayado “deslizante” + glow muy sutil al hover */
+.navfx-underline {
+  position: relative;
+  border-radius: 10px; /* hace que el glow se vea prolijo */
+}
+.navfx-underline::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 7px;
+  height: 1px;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.65),
+    rgba(255, 255, 255, 0)
+  );
+  transition: transform 0.25s ease;
+}
+.navfx-underline:hover::after,
+.navfx-underline:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.navfx-underline:hover {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navfx-underline::after {
+    transition: none;
   }
 }

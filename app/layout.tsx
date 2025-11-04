@@ -1,6 +1,6 @@
+// app/layout.tsx
 import "./globals.css";
 import type { ReactNode } from "react";
-// Los componentes que necesitas
 import Header from "@/components/organisms/Header";
 import Footer from "@/components/organisms/Footer";
 import CartDrawer from "@/components/organisms/CartDrawer";
@@ -15,29 +15,29 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es">
-      {/* Añadimos 'bg-grid' y 'bg-repeat' al body. 
-        Esto aplica el fondo negro profundo y la rejilla sutil para un look más técnico/underground.
-        También aplicamos un padding general en la parte inferior para que el Footer no se pegue.
+      {/*
+        Notas importantes:
+        - NO usamos `bg-by-bg` porque no existe en tu tailwind.config.ts.
+        - El color base y tipografía ya los aplica globals.css en <html>/<body>.
+        - Si querés rejilla de fondo, la aplicamos al main, NO al body,
+          así evitamos cualquier efecto "empañado" global.
       */}
-      <body className="bg-by-bg bg-grid bg-repeat pb-16">
-        {/* Cursor Glow siempre en la capa más baja del contenido */}
+      <body>
+        {/* CursorGlow: debajo del contenido, no intercepta clicks (pointer-events:none en CSS) */}
         <CursorGlow />
 
-        {/* El Header ahora es "sticky" y tiene un fondo semitransparente (backdrop-blur) 
-          para un efecto moderno tipo "vidrio" que se superpone al contenido.
-        */}
+        {/* Header sticky con blur (lo maneja su propio componente) */}
         <Header />
 
-        {/* El contenedor principal:
-          - max-w-7xl es genial.
-          - Cambiamos px-4 por px-6 (más espacio horizontal)
-          - Le quitamos el py-10 para controlar el padding en cada sección de 'page.tsx' individualmente.
-        */}
-        <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 min-h-[70vh]">
+        {/* Contenedor principal del site */}
+        <main className="mx-auto min-h-[70vh] max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* Si querés la rejilla técnica, activá la siguiente envoltura: */}
+          {/* <div className="bg-grid rounded-3xl"> */}
           {children}
+          {/* </div> */}
         </main>
 
-        {/* El Footer y el Drawer de Carrito */}
+        {/* Footer y Cart Drawer */}
         <Footer />
         <CartDrawer />
       </body>
