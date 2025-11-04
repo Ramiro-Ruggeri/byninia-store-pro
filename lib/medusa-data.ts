@@ -124,6 +124,7 @@ type ListOpts =
   | {
       limit?: number;
       page?: number; // 1-based
+      offset?: number; // 0-based (alternativa a page)
       q?: string;
       category_id?: string;
     };
@@ -136,8 +137,21 @@ export async function listProducts(
   opts: ListOpts = 24
 ): Promise<ProductCardProps[]> {
   const limit = typeof opts === "number" ? opts : Math.max(1, opts.limit ?? 24);
-  const page = typeof opts === "number" ? 1 : Math.max(1, opts.page ?? 1);
-  const offset = (page - 1) * limit;
+
+  // page/offset compatibles
+  const page =
+    typeof opts === "number"
+      ? 1
+      : typeof opts.offset === "number"
+      ? Math.floor(opts.offset / limit) + 1
+      : Math.max(1, opts.page ?? 1);
+
+  const offset =
+    typeof opts === "number"
+      ? 0
+      : typeof opts.offset === "number"
+      ? Math.max(0, opts.offset)
+      : (page - 1) * limit;
 
   const url = new URL(`${BASE_URL}/store/products`);
   url.searchParams.set("limit", String(limit));
@@ -187,23 +201,41 @@ export async function getProductByHandle(handle: string) {
 
 export type PagedResult<T> = {
   items: T[];
-  total: number;
+  total: number; // alias moderno
   page: number; // 1-based
   perPage: number; // = limit
   pages: number;
+  // Campos de compatibilidad con tu page.tsx:
+  count: number; // alias de total
+  limit: number; // echo
+  offset: number; // echo
 };
 
 /**
  * Igual que listProducts, pero devuelve metadata de paginación.
- * Acepta las mismas opciones (limit/page/q/category_id). 'limit' ≡ 'perPage'.
+ * Acepta { limit, page } o { limit, offset } (+ q/category_id).
+ * Devuelve también { count, limit, offset } para compatibilidad.
  */
 export async function listProductsPaged(
   opts: ListOpts = 24
 ): Promise<PagedResult<ProductCardProps>> {
   const perPage =
     typeof opts === "number" ? opts : Math.max(1, opts.limit ?? 24);
-  const page = typeof opts === "number" ? 1 : Math.max(1, opts.page ?? 1);
-  const offset = (page - 1) * perPage;
+
+  // soportar offset además de page
+  const page =
+    typeof opts === "number"
+      ? 1
+      : typeof opts.offset === "number"
+      ? Math.floor(opts.offset / perPage) + 1
+      : Math.max(1, opts.page ?? 1);
+
+  const offset =
+    typeof opts === "number"
+      ? 0
+      : typeof opts.offset === "number"
+      ? Math.max(0, opts.offset)
+      : (page - 1) * perPage;
 
   const url = new URL(`${BASE_URL}/store/products`);
   url.searchParams.set("limit", String(perPage));
@@ -224,11 +256,14 @@ export async function listProductsPaged(
   }>(url.toString().replace(BASE_URL, ""));
 
   const items = (data.products || []).map(toCard);
+
+  const countFromAPI =
+    typeof data.count === "number" && data.count >= 0 ? data.count : undefined;
+
+  // fallback si el backend no trae count
   const total =
-    typeof data.count === "number" && data.count >= 0
-      ? data.count
-      : // fallback por si algún backend no devuelve count
-        offset + items.length + (items.length === perPage ? perPage : 0);
+    countFromAPI ??
+    offset + items.length + (items.length === perPage ? perPage : 0);
 
   const pages = Math.max(1, Math.ceil(total / perPage));
 
@@ -238,5 +273,9 @@ export async function listProductsPaged(
     page,
     perPage,
     pages,
+    // compat:
+    count: total,
+    limit: perPage,
+    offset,
   };
 }
