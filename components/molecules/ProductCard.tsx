@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 export type ProductCardProps = {
   id: string;
   slug: string;
   title: string;
   price: number; // en centavos
-  thumbnail?: string; // URL pública de /public, http(s) o data-uri
+  thumbnail?: string; // /public, http(s) o data-uri
   isNew?: boolean;
   lowStock?: boolean;
 };
@@ -24,20 +24,21 @@ const FALLBACK_SVG =
     </svg>`
   );
 
-// ✅ ahora acepta rutas locales de /public (empiezan con "/")
+// Acepta rutas locales (/), data-uri y http(s)
 function isGoodUrl(u?: string) {
   if (!u) return false;
-  if (u.startsWith("/")) return true; // /images/... desde /public
-  if (u.startsWith("data:image")) return true; // data URI
-  return /^https?:\/\//i.test(u); // remotas
+  if (u.startsWith("/")) return true;
+  if (u.startsWith("data:image")) return true;
+  return /^https?:\/\//i.test(u);
 }
 
 function formatARS(cents: number) {
+  const safe = Number.isFinite(cents) ? cents : 0;
   return new Intl.NumberFormat("es-AR", {
     style: "currency",
     currency: "ARS",
     maximumFractionDigits: 0,
-  }).format(Math.round(cents / 100));
+  }).format(Math.round(safe / 100));
 }
 
 export default function ProductCard({
@@ -48,7 +49,8 @@ export default function ProductCard({
   isNew,
   lowStock,
 }: ProductCardProps) {
-  const href = `/products/${encodeURIComponent(slug)}`;
+  const href = useMemo(() => `/products/${encodeURIComponent(slug)}`, [slug]);
+
   const initialSrc = isGoodUrl(thumbnail)
     ? (thumbnail as string)
     : FALLBACK_SVG;
@@ -59,6 +61,7 @@ export default function ProductCard({
       <Link
         href={href}
         aria-label={`Ver ${title}`}
+        prefetch={false}
         className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 rounded-3xl"
       >
         <div className="relative aspect-square overflow-hidden">
@@ -70,6 +73,7 @@ export default function ProductCard({
             sizes="(min-width:1280px) 25vw, (min-width:768px) 33vw, 100vw"
             unoptimized
             onError={() => setSrc(FALLBACK_SVG)}
+            priority={false}
           />
 
           {(isNew || lowStock) && (

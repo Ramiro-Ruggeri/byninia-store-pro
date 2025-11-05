@@ -1,22 +1,21 @@
 "use client";
 
 import { useMemo } from "react";
-import { useCart } from "@/store/cart";
+import { useCart } from "@/app/(store)/cart/cart";
 import { cn } from "@/lib/motion";
 
 /**
  * WhatsAppButton
  * - Arma un mensaje prellenado con:
- *   • saludo humano + intención de compra
+ *   • saludo + intención de compra
  *   • resumen del carrito (si hay items)
  *   • URL de la página actual (si existe)
- * - Abre wa.me listo para tocar "Enviar".
  *
  * Props:
- * - phone: string (obligatorio) -> en formato internacional, ej: "5493510000000"
- * - label: string (texto del botón)
- * - className: estilos extra
- * - variant: "solid" | "outline"
+ * - phone: string (obligatorio) -> E.164: "5493510000000"
+ * - label?: string
+ * - className?: string
+ * - variant?: "solid" | "outline"
  */
 export default function WhatsAppButton({
   phone,
@@ -31,16 +30,27 @@ export default function WhatsAppButton({
 }) {
   const { items, total } = useCart();
 
+  // URL segura en cliente
   const url = typeof window !== "undefined" ? window.location.href : "";
-  const hasItems = items && items.length > 0;
 
+  const hasItems = Array.isArray(items) && items.length > 0;
+
+  // Aseguramos tipos/valores para evitar NaN
   const cartLines = hasItems
     ? items
-        .map(
-          (i) => `• ${i.title} x${i.quantity}  $ ${(i.price / 100).toFixed(2)}`
-        )
+        .map((i) => {
+          const title = String(i?.title ?? "Producto");
+          const qty = Number(i?.quantity ?? i?.qty ?? 1) || 1;
+          const priceCents = Number(i?.price ?? 0) || 0; // centavos
+          const price = (priceCents / 100).toFixed(2);
+          return `• ${title} x${qty}  $ ${price}`;
+        })
         .join("\n")
     : "";
+
+  // total puede ser número o función -> lo normalizamos a centavos (número)
+  const totalCents =
+    typeof total === "function" ? Number(total() ?? 0) : Number(total ?? 0);
 
   const message = useMemo(() => {
     const intro =
@@ -50,7 +60,7 @@ export default function WhatsAppButton({
 
     const cart = hasItems
       ? `\n\nMi carrito ahora:\n${cartLines}\nTotal aprox.: $ ${(
-          total() / 100
+          totalCents / 100
         ).toFixed(2)}`
       : "";
 
@@ -59,7 +69,7 @@ export default function WhatsAppButton({
 
     const full = `${intro}${cart}${link}\n\n${where}${outro}`;
     return encodeURIComponent(full);
-  }, [cartLines, hasItems, total, url]);
+  }, [cartLines, hasItems, totalCents, url]);
 
   const href = `https://wa.me/${phone}?text=${message}`;
 

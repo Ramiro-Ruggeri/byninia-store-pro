@@ -1,131 +1,88 @@
-import Image from "next/image";
+// app/(catalog)/products/page.tsx
 import Link from "next/link";
-import VariantSelect, { type VariantUI } from "@/components/pdp/VariantSelect";
-import { getProductByHandle } from "@/lib/medusa-data";
+import type { UrlObject } from "url";
+import ProductGrid from "@/components/organisms/ProductGrid";
+import { listProductsPaged } from "@/lib/medusa-data";
 
-// ---------- utils (solo server) ----------
-function formatARS(cents: number) {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    maximumFractionDigits: 0,
-  }).format(Math.round((cents || 0) / 100));
-}
+type Search = Record<string, string | string[] | undefined>;
 
-// ---------- server page ----------
-export default async function ProductPage({
-  params,
+export default async function ProductsPage({
+  searchParams,
 }: {
-  params: { handle: string };
+  searchParams?: Search;
 }) {
-  const handle = params.handle;
+  const limit = 24;
 
-  const data = await getProductByHandle(handle).catch(() => null);
-  if (!data?.raw) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh] bg-white">
-        <div className="text-gray-500 text-xl font-medium">
-          Producto no encontrado.
-        </div>
-      </div>
-    );
-  }
+  // --- sanitize de query ---
+  const rawQ = searchParams?.q;
+  const q =
+    typeof rawQ === "string" && rawQ.trim().length > 0
+      ? rawQ.trim()
+      : undefined;
 
-  const p = data.raw;
-  const title: string = p.title || "Producto";
-  const images: string[] =
-    (p.images || []).map((img: any) => img?.url).filter(Boolean) ??
-    (p.thumbnail ? [p.thumbnail] : []);
-  const hero = images[0] || "/placeholder.png";
+  const rawOffset = searchParams?.offset;
+  const offset =
+    typeof rawOffset === "string" && !Number.isNaN(Number(rawOffset))
+      ? Math.max(0, Number(rawOffset))
+      : 0;
 
-  const basePriceCents = data.card.price || 0;
+  // --- datos paginados ---
+  const { items, total } = await listProductsPaged({ q, limit, offset });
 
-  const variants: VariantUI[] = (p.variants || []).map((v: any) => {
-    const candidates = [
-      v?.prices?.[0]?.calculated_price,
-      v?.calculated_price,
-      v?.prices?.[0]?.amount,
-      basePriceCents,
-    ];
-    const val = candidates.find((n) => Number.isFinite(Number(n)));
-    return {
-      id: v.id,
-      title: v.title || "Variante",
-      priceCents: Math.round(Number(val) || 0),
-    };
+  const hasPrev = offset > 0;
+  const hasNext = offset + limit < total;
+
+  // --- helper para Links compatible con typedRoutes ---
+  const makeHref = (nextOffset: number): UrlObject => ({
+    pathname: "/products",
+    query: {
+      ...(q ? { q } : {}),
+      offset: Math.max(0, nextOffset),
+    },
   });
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 p-6 md:p-12 font-sans">
-      <div className="max-w-6xl mx-auto">
-        <p className="text-gray-500 text-xs mb-8 uppercase tracking-wider">
-          <Link href="/" className="hover:text-gray-900">
-            Inicio
-          </Link>{" "}
-          /{" "}
-          <Link href="/products" className="hover:text-gray-900">
-            Catálogo
-          </Link>{" "}
-          / <span className="text-gray-900 font-medium ml-1">{title}</span>
-        </p>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
-          <div className="space-y-4">
-            <div className="aspect-[4/5] overflow-hidden bg-gray-100 border border-gray-200 relative">
-              <Image
-                src={hero}
-                alt={`${title} - vista`}
-                fill
-                className="object-cover"
-                sizes="(min-width:1024px) 50vw, 100vw"
-                unoptimized
-              />
-            </div>
-            {images.length > 1 && (
-              <div className="grid grid-cols-4 gap-2">
-                {images.slice(0, 8).map((url, i) => (
-                  <div
-                    key={i}
-                    className="relative w-full aspect-[1/1] overflow-hidden bg-gray-100 border border-gray-200"
-                  >
-                    <Image
-                      src={url}
-                      alt={`Miniatura ${i + 1}`}
-                      fill
-                      className="object-cover"
-                      sizes="(min-width:1024px) 12vw, 25vw"
-                      unoptimized
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="lg:sticky lg:top-8 h-fit pt-4 lg:pt-0">
-            <h1 className="text-4xl font-light text-gray-900 leading-snug mb-2">
-              {title}
-            </h1>
-
-            <VariantSelect
-              productTitle={title}
-              variants={variants}
-              defaultPriceCents={basePriceCents}
-            />
-
-            {p.description && (
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <h3 className="text-sm font-medium text-gray-700 mb-3 uppercase tracking-wider">
-                  Detalles del Producto
-                </h3>
-                <p className="text-gray-600 whitespace-pre-line text-sm leading-relaxed">
-                  {p.description}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+    <main className="container mx-auto px-4 py-10">
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <h1 className="text-2xl md:text-3xl font-semibold">
+          {q ? `Resultados para “${q}”` : "Productos"}
+        </h1>
+        {typeof q === "string" && q.length > 0 && (
+          <span className="text-sm text-white/60">
+            {items.length} / {total}
+          </span>
+        )}
       </div>
-    </div>
+
+      <ProductGrid products={items} />
+
+      {/* Paginación */}
+      <div className="flex items-center justify-between mt-10">
+        <Link
+          href={makeHref(offset - limit)}
+          aria-disabled={!hasPrev}
+          className={`rounded-lg border border-white/10 px-4 py-2 text-white/80 hover:text-white ${
+            hasPrev ? "" : "pointer-events-none opacity-40"
+          }`}
+        >
+          ← Anterior
+        </Link>
+
+        <span className="text-white/60">
+          {Math.floor(offset / limit) + 1} /{" "}
+          {Math.max(1, Math.ceil(total / limit))}
+        </span>
+
+        <Link
+          href={makeHref(offset + limit)}
+          aria-disabled={!hasNext}
+          className={`rounded-lg border border-white/10 px-4 py-2 text-white/80 hover:text-white ${
+            hasNext ? "" : "pointer-events-none opacity-40"
+          }`}
+        >
+          Siguiente →
+        </Link>
+      </div>
+    </main>
   );
 }

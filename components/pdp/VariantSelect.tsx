@@ -4,11 +4,12 @@ import { useMemo, useState } from "react";
 import { ChevronDown, Send } from "lucide-react";
 
 function formatARS(cents: number) {
+  const safe = Number.isFinite(cents) ? cents : 0;
   return new Intl.NumberFormat("es-AR", {
     style: "currency",
     currency: "ARS",
     maximumFractionDigits: 0,
-  }).format(Math.round((cents || 0) / 100));
+  }).format(Math.round(safe / 100));
 }
 
 const WA_PHONE = process.env.NEXT_PUBLIC_WA_PHONE || "5493510000000";
@@ -27,15 +28,16 @@ export default function VariantSelect({
   variants: VariantUI[];
   defaultPriceCents: number;
 }) {
-  const [current, setCurrent] = useState<VariantUI>(
-    variants[0] ?? {
-      id: "default",
-      title: "Única",
-      priceCents: defaultPriceCents,
-    }
-  );
+  const safeDefault: VariantUI = {
+    id: "default",
+    title: "Única",
+    priceCents: defaultPriceCents,
+  };
 
-  const price = current?.priceCents ?? defaultPriceCents;
+  const [current, setCurrent] = useState<VariantUI>(variants[0] ?? safeDefault);
+  const price = Number.isFinite(current?.priceCents)
+    ? current.priceCents
+    : defaultPriceCents;
 
   const waMessage = useMemo(() => {
     const vtxt = current?.title ? ` en la variante "${current.title}"` : "";
@@ -60,7 +62,7 @@ export default function VariantSelect({
               value={current.id}
               onChange={(e) => {
                 const v = variants.find((x) => x.id === e.target.value);
-                if (v) setCurrent(v);
+                setCurrent(v ?? safeDefault);
               }}
               className="appearance-none w-full bg-white border border-gray-300 text-gray-900 text-base py-3 px-4 rounded-md focus:ring-gray-900 focus:border-gray-900 transition-colors cursor-pointer pr-10"
             >
