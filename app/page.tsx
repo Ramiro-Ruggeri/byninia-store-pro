@@ -5,7 +5,7 @@ import ProductGrid from "@/components/organisms/ProductGrid";
 import Marquee from "@/components/ux/Marquee";
 import SectionTitle from "@/components/ux/SectionTitle";
 import { Zap, Shield, Rocket, MapPin } from "lucide-react";
-import { getProducts } from "@/lib/medusa"; // ⬅️ reemplaza listProducts por esto
+import { getProducts } from "@/lib/medusa-data"; // ⬅️ reemplaza listProducts por esto
 
 /* ---------------- Reutilizables ---------------- */
 

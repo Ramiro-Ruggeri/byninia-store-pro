@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useCart } from "@/app/(store)/cart/cart";
+import { useCart } from "@/app/(store)/cart";
 import { cn } from "@/lib/motion";
 
 /**
@@ -38,7 +38,7 @@ export default function WhatsAppButton({
   // Aseguramos tipos/valores para evitar NaN
   const cartLines = hasItems
     ? items
-        .map((i) => {
+        .map((i: any) => {
           const title = String(i?.title ?? "Producto");
           const qty = Number(i?.quantity ?? i?.qty ?? 1) || 1;
           const priceCents = Number(i?.price ?? 0) || 0; // centavos

@@ -1,144 +1,105 @@
 // lib/medusa-data.ts
-// Capa mínima para traer productos desde Medusa Store API con la publishable key.
-// Mapea el resultado al shape que usa ProductCard.tsx
+// Versión FRONT-ONLY (sin Medusa).
+// Expone la misma API que antes, pero usando un listado fijo de productos
+// en memoria para que el proyecto funcione sin backend.
+
+// ----------------- Tipos -----------------
 
 export type ProductCardProps = {
   id: string;
   slug: string;
   title: string;
-  price: number; // en centavos (nunca NaN)
+  price: number; // en centavos
   thumbnail?: string;
   isNew?: boolean;
   lowStock?: boolean;
 };
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL?.replace(/\/+$/, "") ||
-  "http://localhost:9000";
-
-const PUB_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
-
-// Decide estrategia de cache según entorno
-const isProd = process.env.NODE_ENV === "production";
-
-/** Fetch helper con headers correctos */
-async function medusaGet<T>(path: string, init?: RequestInit): Promise<T> {
-  const url = `${BASE_URL}${path}`;
-  const res = await fetch(url, {
-    method: "GET",
-    ...init,
-    headers: {
-      "x-publishable-api-key": PUB_KEY,
-      "content-type": "application/json",
-      ...(init?.headers || {}),
-    },
-    // En dev: datos frescos; en prod: revalidación rápida
-    cache: isProd ? "force-cache" : "no-store",
-    next: isProd ? { revalidate: 30 } : { revalidate: 0 },
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`[Medusa ${res.status}] ${url} -> ${text}`);
-  }
-  return res.json();
-}
-
-/* =========================
-   Helpers robustos de precio
-   ========================= */
-
-/** Devuelve el primer número finito >= 0 encontrado, o 0. */
-function firstNumber(...vals: any[]): number {
-  for (const v of vals) {
-    const n = Number(v);
-    if (Number.isFinite(n) && n >= 0) return n;
-  }
-  return 0;
-}
-
-/** Intenta resolver un precio en centavos desde distintas formas de Medusa (v1/v2). */
-function pickPriceCents(p: any): number {
-  // Medusa (Store API) suele exponer:
-  // - p.price.calculated_price / calculated_price_incl_tax
-  // - p.variants[*].calculated_price / prices[*].amount
-  // En todos los casos trabajamos en centavos (amount).
-  const v0 = p?.variants?.[0];
-
-  const cents = firstNumber(
-    // preferidos (calculados por región/listas)
-    p?.price?.calculated_price,
-    p?.price?.calculated_price_incl_tax,
-    // variantes (v2 a veces coloca calculated_price a nivel variante)
-    v0?.calculated_price,
-    v0?.calculated_price_incl_tax,
-    // primer price explícito
-    v0?.prices?.[0]?.calculated_price,
-    v0?.prices?.[0]?.amount,
-    // por si algún backend deja un array suelto en p.prices
-    p?.prices?.[0]?.amount
-  );
-
-  // Siempre devolver entero en centavos, nunca NaN
-  return Math.round(cents || 0);
-}
-
-/** Devuelve si hay poco stock mirando la primer variante (o inventory item si viene) */
-function computeLowStock(p: any): boolean {
-  const qty = firstNumber(
-    p?.variants?.[0]?.inventory_quantity,
-    p?.variants?.[0]?.inventory?.available_quantity,
-    p?.variants?.[0]?.inventory_items?.[0]?.available_quantity
-  );
-  return qty > 0 && qty <= 5;
-}
-
-/** Resuelve un thumbnail seguro. */
-function safeThumbnail(p: any): string | undefined {
-  const t =
-    p?.thumbnail ||
-    p?.images?.[0]?.url ||
-    p?.variants?.[0]?.thumbnail ||
-    p?.variants?.[0]?.images?.[0]?.url;
-  return typeof t === "string" && t.length ? t : undefined;
-}
-
-/** Mapea Medusa product -> ProductCardProps (a prueba de fallos) */
-function toCard(p: any): ProductCardProps {
-  return {
-    id: p?.id ?? "",
-    slug: p?.handle || p?.id || "",
-    title: p?.title || "Producto",
-    thumbnail: safeThumbnail(p),
-    price: pickPriceCents(p), // ← nunca NaN
-    isNew:
-      !!p?.created_at &&
-      Date.now() - new Date(p.created_at).getTime() < 1000 * 60 * 60 * 24 * 30, // 30 días
-    lowStock: computeLowStock(p),
-  };
-}
-
-/** Opciones para listar productos (compatible con tu firma actual) */
+// Opciones para listar productos (mantenemos el tipo para compatibilidad)
 type ListOpts =
   | number
   | {
       limit?: number;
       page?: number; // 1-based
-      offset?: number; // 0-based (alternativa a page)
+      offset?: number; // 0-based
       q?: string;
-      category_id?: string;
+      category_id?: string; // ignorado en mock, pero lo dejamos
     };
 
-/** Lista de productos para el grid
- * - Compatibilidad: listProducts(12)
- * - Extendido: listProducts({ limit: 12, page: 2, q: "jean" })
- */
-export async function listProducts(
-  opts: ListOpts = 24
-): Promise<ProductCardProps[]> {
+// ----------------- DATA MOCK -----------------
+
+// Acá armamos los Inchoriables a gusto.
+// Podés cambiar títulos, precios e imágenes sin problema.
+const MOCK_PRODUCTS: ProductCardProps[] = [
+  {
+    id: "inch-01",
+    slug: "inchoriable-black-chain",
+    title: "Inchoriable Black Chain",
+    price: 249900, // $2499,00
+    thumbnail: "/images/products/inchoriable-black-chain.jpg", // asegurate de tener algo en public/...
+    isNew: true,
+    lowStock: false,
+  },
+  {
+    id: "inch-02",
+    slug: "inchoriable-silver-drip",
+    title: "Inchoriable Silver Drip",
+    price: 269900,
+    thumbnail: "/images/products/inchoriable-silver-drip.jpg",
+    isNew: true,
+    lowStock: true,
+  },
+  {
+    id: "inch-03",
+    slug: "inchoriable-gold-night",
+    title: "Inchoriable Gold Night",
+    price: 299900,
+    thumbnail: "/images/products/inchoriable-gold-night.jpg",
+    isNew: false,
+    lowStock: false,
+  },
+  {
+    id: "inch-04",
+    slug: "inchoriable-gunmetal",
+    title: "Inchoriable Gunmetal",
+    price: 259900,
+    thumbnail: "/images/products/inchoriable-gunmetal.jpg",
+    isNew: false,
+    lowStock: true,
+  },
+  {
+    id: "inch-05",
+    slug: "inchoriable-spiked",
+    title: "Inchoriable Spiked Edition",
+    price: 279900,
+    thumbnail: "/images/products/inchoriable-spiked.jpg",
+    isNew: true,
+    lowStock: false,
+  },
+  {
+    id: "inch-06",
+    slug: "inchoriable-minimal",
+    title: "Inchoriable Minimal",
+    price: 219900,
+    thumbnail: "/images/products/inchoriable-minimal.jpg",
+    isNew: false,
+    lowStock: false,
+  },
+];
+
+// Si quisieras, acá podrías hacer una pequeña normalización extra,
+// pero el mock ya respeta ProductCardProps.
+
+// ----------------- Helpers internos -----------------
+
+function normalizeOpts(opts: ListOpts = 24): {
+  limit: number;
+  page: number;
+  offset: number;
+  q?: string;
+} {
   const limit = typeof opts === "number" ? opts : Math.max(1, opts.limit ?? 24);
 
-  // page/offset compatibles
   const page =
     typeof opts === "number"
       ? 1
@@ -153,129 +114,119 @@ export async function listProducts(
       ? Math.max(0, opts.offset)
       : (page - 1) * limit;
 
-  const url = new URL(`${BASE_URL}/store/products`);
-  url.searchParams.set("limit", String(limit));
-  url.searchParams.set("offset", String(offset));
-  if (typeof opts !== "number" && opts.q) {
-    url.searchParams.set("q", opts.q);
-  }
-  if (typeof opts !== "number" && opts.category_id) {
-    url.searchParams.set("category_id", opts.category_id);
-  }
+  const q = typeof opts === "number" ? undefined : opts.q;
 
-  const data = await medusaGet<{ products: any[] }>(
-    url.toString().replace(BASE_URL, "")
-  );
-
-  return (data.products || []).map(toCard);
+  return { limit, page, offset, q };
 }
 
-/** Detalle por handle/slug (para la PDP)
- * NOTA: /store/products/:id trae por id. Para handle es más seguro usar query ?handle=...&limit=1
+function applySearch(products: ProductCardProps[], q?: string) {
+  if (!q || !q.trim()) return products;
+  const needle = q.trim().toLowerCase();
+  return products.filter((p) =>
+    `${p.title} ${p.slug}`.toLowerCase().includes(needle)
+  );
+}
+
+// ----------------- API pública (mock) -----------------
+
+/**
+ * Lista simple de productos para el grid.
+ * Mantiene la misma firma que antes, pero sin fetch.
  */
-export async function getProductByHandle(handle: string) {
-  const url = new URL(`/store/products`, BASE_URL);
-  url.searchParams.set("handle", handle);
-  url.searchParams.set("limit", "1");
+export async function listProducts(
+  opts: ListOpts = 24
+): Promise<ProductCardProps[]> {
+  const { limit, offset, q } = normalizeOpts(opts);
 
-  const data = await medusaGet<{ products: any[] }>(
-    url.toString().replace(BASE_URL, "")
-  );
+  const filtered = applySearch(MOCK_PRODUCTS, q);
+  const slice = filtered.slice(offset, offset + limit);
 
-  const prod = Array.isArray(data.products) ? data.products[0] : undefined;
-  if (!prod)
-    return {
-      raw: null,
-      card: null as unknown as ProductCardProps,
-    };
-
-  return {
-    raw: prod,
-    card: toCard(prod) as ProductCardProps,
-  };
+  return slice;
 }
 
-/* =========================
-   NUEVO: listProductsPaged
-   ========================= */
-
+// Resultado paginado (igual que antes)
 export type PagedResult<T> = {
   items: T[];
-  total: number; // alias moderno
+  total: number;
   page: number; // 1-based
-  perPage: number; // = limit
+  perPage: number;
   pages: number;
-  // Campos de compatibilidad con tu page.tsx:
-  count: number; // alias de total
-  limit: number; // echo
-  offset: number; // echo
+  // compat:
+  count: number;
+  limit: number;
+  offset: number;
 };
 
 /**
- * Igual que listProducts, pero devuelve metadata de paginación.
- * Acepta { limit, page } o { limit, offset } (+ q/category_id).
- * Devuelve también { count, limit, offset } para compatibilidad.
+ * Igual que listProducts, pero con metadata de paginación.
  */
 export async function listProductsPaged(
   opts: ListOpts = 24
 ): Promise<PagedResult<ProductCardProps>> {
-  const perPage =
-    typeof opts === "number" ? opts : Math.max(1, opts.limit ?? 24);
+  const { limit, page, offset, q } = normalizeOpts(opts);
 
-  // soportar offset además de page
-  const page =
-    typeof opts === "number"
-      ? 1
-      : typeof opts.offset === "number"
-      ? Math.floor(opts.offset / perPage) + 1
-      : Math.max(1, opts.page ?? 1);
-
-  const offset =
-    typeof opts === "number"
-      ? 0
-      : typeof opts.offset === "number"
-      ? Math.max(0, opts.offset)
-      : (page - 1) * perPage;
-
-  const url = new URL(`${BASE_URL}/store/products`);
-  url.searchParams.set("limit", String(perPage));
-  url.searchParams.set("offset", String(offset));
-  if (typeof opts !== "number" && opts.q) {
-    url.searchParams.set("q", opts.q);
-  }
-  if (typeof opts !== "number" && opts.category_id) {
-    url.searchParams.set("category_id", opts.category_id);
-  }
-
-  // Medusa Store API suele devolver { products, count, offset, limit }
-  const data = await medusaGet<{
-    products: any[];
-    count?: number;
-    limit?: number;
-    offset?: number;
-  }>(url.toString().replace(BASE_URL, ""));
-
-  const items = (data.products || []).map(toCard);
-
-  const countFromAPI =
-    typeof data.count === "number" && data.count >= 0 ? data.count : undefined;
-
-  // fallback si el backend no trae count
-  const total =
-    countFromAPI ??
-    offset + items.length + (items.length === perPage ? perPage : 0);
-
-  const pages = Math.max(1, Math.ceil(total / perPage));
+  const filtered = applySearch(MOCK_PRODUCTS, q);
+  const total = filtered.length;
+  const items = filtered.slice(offset, offset + limit);
+  const pages = Math.max(1, Math.ceil(total / limit));
 
   return {
     items,
     total,
     page,
-    perPage,
+    perPage: limit,
     pages,
     // compat:
     count: total,
-    limit: perPage,
+    limit,
+    offset,
+  };
+}
+
+/**
+ * Detalle por handle/slug (para PDP).
+ * Busca en el mock por slug o id.
+ */
+export async function getProductByHandle(handle: string) {
+  const prod =
+    MOCK_PRODUCTS.find(
+      (p) =>
+        p.slug.toLowerCase() === handle.toLowerCase() ||
+        p.id.toLowerCase() === handle.toLowerCase()
+    ) || null;
+
+  if (!prod) {
+    return {
+      raw: null,
+      card: null as unknown as ProductCardProps,
+    };
+  }
+
+  return {
+    raw: prod,
+    card: prod,
+  };
+}
+
+/**
+ * Helper que usa Home:
+ *   const { products } = await getProducts(24, 0)
+ */
+export async function getProducts(
+  limit: number = 24,
+  offset: number = 0
+): Promise<{
+  products: ProductCardProps[];
+  count: number;
+  limit: number;
+  offset: number;
+}> {
+  const { items, count } = await listProductsPaged({ limit, offset });
+
+  return {
+    products: items,
+    count,
+    limit,
     offset,
   };
 }
