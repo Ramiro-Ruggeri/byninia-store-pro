@@ -5,41 +5,35 @@ import Header from "@/components/organisms/Header";
 import Footer from "@/components/organisms/Footer";
 import CartDrawer from "@/components/organisms/CartDrawer";
 import CursorGlow from "@/components/ux/CursorGlow";
+import CookieBanner from "@/components/ux/CookieBanner";
 
 export const metadata = {
-  title: "BYNINIA – Inchoriables | Accesorios Anti-Robo",
+  title: "BYNINIA – Accesorios de cadena & metal",
   description:
-    "Portaencendedor con cadena anti-robo. Hecho a mano en Córdoba para el outfit nocturno.",
+    "Accesorios nocturnos de cadena & metal hechos en Argentina, pensados para subirle el nivel a cualquier outfit. Envíos a todo el país.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es">
-      {/*
-        Notas importantes:
-        - NO usamos `bg-by-bg` porque no existe en tu tailwind.config.ts.
-        - El color base y tipografía ya los aplica globals.css en <html>/<body>.
-        - Si querés rejilla de fondo, la aplicamos al main, NO al body,
-          así evitamos cualquier efecto "empañado" global.
-      */}
-      <body>
-        {/* CursorGlow: debajo del contenido, no intercepta clicks (pointer-events:none en CSS) */}
+      <body className="bg-black text-white">
+        {/* Glow del cursor (pointer-events: none en CSS) */}
         <CursorGlow />
 
-        {/* Header sticky con blur (lo maneja su propio componente) */}
+        {/* Header sticky */}
         <Header />
 
-        {/* Contenedor principal del site */}
-        <main className="mx-auto min-h-[70vh] max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Si querés la rejilla técnica, activá la siguiente envoltura: */}
-          {/* <div className="bg-grid rounded-3xl"> */}
-          {children}
-          {/* </div> */}
-        </main>
+        {/* 
+          main sin max-w ni padding global:
+          - el Hero puede ocupar todo el ancho.
+          - cada sección interna decide su propio container (max-w-7xl, etc.).
+        */}
+        <main className="min-h-[70vh]">{children}</main>
 
-        {/* Footer y Cart Drawer */}
+        {/* Footer, carrito y banner de cookies */}
         <Footer />
         <CartDrawer />
+        <CookieBanner />
       </body>
     </html>
   );

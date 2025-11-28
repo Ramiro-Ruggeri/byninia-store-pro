@@ -4,8 +4,8 @@ import Hero from "@/components/organisms/Hero";
 import ProductGrid from "@/components/organisms/ProductGrid";
 import Marquee from "@/components/ux/Marquee";
 import SectionTitle from "@/components/ux/SectionTitle";
+import { listProducts } from "@/lib/medusa-data";
 import { Zap, Shield, Rocket, MapPin } from "lucide-react";
-import { getProducts } from "@/lib/medusa-data"; // ⬅️ reemplaza listProducts por esto
 
 /* ---------------- Reutilizables ---------------- */
 
@@ -138,7 +138,11 @@ function FinalCTA() {
 
   return (
     <section className="mx-auto max-w-7xl px-4 mt-24 mb-16">
-      <div className="rounded-3xl border border-white/10 bg-[var(--by-card)] p-12 text-center shadow-2xl bg-[radial-gradient(50%_50%_at_50%_0%,rgba(255,0,102,0.10)_0%,transparent_70%)]">
+      <div
+        className="rounded-3xl border border-white/10 bg-[var(--by-card)]
+                   p-12 text-center shadow-2xl
+                   bg-[radial-gradient(50%_50%_at_50%_0%,rgba(255,0,102,0.10)_0%,transparent_70%)]"
+      >
         <h3 className="h-title text-4xl md:text-5xl font-black max-w-4xl mx-auto">
           Listo para subir el{" "}
           <span
@@ -178,25 +182,53 @@ function FinalCTA() {
 /* ---------------- Página ---------------- */
 
 export default async function Home() {
-  // 👇 llamamos Medusa real
-  const { products } = await getProducts(24, 0);
+  // Traemos todos los productos locales
+  const allProducts = await listProducts();
+
+  // Core / estándar (Rockstar, Gata Cool, etc.)
+  const standardProducts = allProducts.filter(
+    (p) => !p.slug.startsWith("hello-kitty") && !p.slug.startsWith("kuromi")
+  );
+
+  // Edición limitada Hello Kitty + Kuromi
+  const helloKittyProducts = allProducts.filter(
+    (p) => p.slug.startsWith("hello-kitty") || p.slug.startsWith("kuromi")
+  );
 
   return (
     <>
+      {/* 1) Hero */}
       <Hero />
+
+      {/* 2) Features */}
       <FeaturesStrip />
 
-      <section className="mx-auto max-w-7xl px-4 mt-24">
+      {/* 3) Productos core (para el scroll desde el Hero) */}
+      <section id="catalogo" className="mx-auto max-w-7xl px-4 mt-24">
         <SectionTitle
           title="Inchoriables destacados"
           eyebrow="Llevá el fuego con vos"
         />
         <div className="mt-8">
-          <ProductGrid products={products} />
+          <ProductGrid products={standardProducts} />
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 mt-24">
+      {/* 3.b) Edición limitada Hello Kitty & Kuromi */}
+      {helloKittyProducts.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 mt-16">
+          <SectionTitle
+            title="Edición limitada Hello Kitty & Kuromi"
+            eyebrow="Stock reducido · piezas coleccionables"
+          />
+          <div className="mt-8">
+            <ProductGrid products={helloKittyProducts} />
+          </div>
+        </section>
+      )}
+
+      {/* 4) Marquee – ahora full width */}
+      <section className="w-full mt-24">
         <Marquee
           items={[
             "NO SE TE PIERDE EL FUEGO",
@@ -207,8 +239,13 @@ export default async function Home() {
         />
       </section>
 
+      {/* 5) Cómo funciona */}
       <HowItWorks />
+
+      {/* 6) Reseñas */}
       <SocialProof />
+
+      {/* 7) CTA final */}
       <FinalCTA />
     </>
   );

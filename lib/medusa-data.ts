@@ -1,9 +1,5 @@
 // lib/medusa-data.ts
-// Versión FRONT-ONLY (sin Medusa).
-// Expone la misma API que antes, pero usando un listado fijo de productos
-// en memoria para que el proyecto funcione sin backend.
-
-// ----------------- Tipos -----------------
+// Catálogo 100% local (sin Medusa). Usado por ProductGrid, PDP, etc.
 
 export type ProductCardProps = {
   id: string;
@@ -15,7 +11,172 @@ export type ProductCardProps = {
   lowStock?: boolean;
 };
 
-// Opciones para listar productos (mantenemos el tipo para compatibilidad)
+/* =========================
+   PRODUCTOS LOCALES
+   ========================= */
+
+/**
+ * Las imágenes deben existir en:
+ *   /public/images/products/...
+ *
+ * Ejemplos:
+ *   /public/images/products/rockstar.jpg
+ *   /public/images/products/gatacool.jpg
+ *   /public/images/products/ferne.jpg
+ *   /public/images/products/conejorock.jpg
+ *   /public/images/products/ung.jpg
+ *   /public/images/products/noesperes.jpg
+ *   /public/images/products/hotchilli.jpg
+ *   /public/images/products/bandida.jpg
+ *
+ *   /public/images/products/hello-kitty-flower.jpg
+ *   /public/images/products/hello-kitty-classic.jpg
+ *   /public/images/products/hello-kitty-heart.jpg
+ *   /public/images/products/hello-kitty-love.jpg
+ *   /public/images/products/kuromi-love.jpg
+ */
+
+export const LOCAL_PRODUCTS: ProductCardProps[] = [
+  // =========================
+  // INCHORIABLES CORE
+  // =========================
+  {
+    id: "rockstar",
+    slug: "rockstar",
+    title: "Inchoriable Rockstar",
+    price: 249900,
+    thumbnail: "/images/products/rockstar.jpg",
+    isNew: true,
+    lowStock: false,
+  },
+  {
+    id: "gata-cool",
+    slug: "gata-cool",
+    title: "Inchoriable Gata Cool",
+    price: 249900,
+    thumbnail: "/images/products/gatacool.jpg",
+    isNew: true,
+    lowStock: false,
+  },
+  {
+    id: "ferne",
+    slug: "ferne",
+    title: "Inchoriable Ferne’",
+    price: 249900,
+    thumbnail: "/images/products/ferne.jpg",
+    isNew: true,
+    lowStock: false,
+  },
+  {
+    id: "conejo-rock",
+    slug: "conejo-rock",
+    title: "Inchoriable Conejo Rock",
+    price: 259900,
+    thumbnail: "/images/products/conejorock.jpg",
+    isNew: true,
+    lowStock: true,
+  },
+  {
+    id: "un-g",
+    slug: "un-g",
+    title: "Inchoriable Un G",
+    price: 259900,
+    thumbnail: "/images/products/ung.jpg",
+    isNew: true,
+    lowStock: false,
+  },
+  {
+    id: "no-esperes-nada-de-mi",
+    slug: "no-esperes-nada-de-mi",
+    title: "No esperes nada de mí",
+    price: 259900,
+    thumbnail: "/images/products/noesperes.jpg",
+    isNew: false,
+    lowStock: true,
+  },
+  {
+    id: "hot-chilli",
+    slug: "hot-chilli",
+    title: "Inchoriable Hot Chilli",
+    price: 269900,
+    thumbnail: "/images/products/hotchilli.jpg",
+    isNew: true,
+    lowStock: false,
+  },
+  {
+    id: "bandida",
+    slug: "bandida",
+    title: "Inchoriable Bandida",
+    price: 259900,
+    thumbnail: "/images/products/bandida.jpg",
+    isNew: true,
+    lowStock: true,
+  },
+
+  // =========================
+  // EDICIÓN LIMITADA HELLO KITTY
+  // =========================
+  {
+    id: "hello-kitty-flower",
+    slug: "hello-kitty-flower",
+    title: "Hello Kitty Flower",
+    price: 299900,
+    thumbnail: "/images/products/hello-kitty-flower.jpg",
+    isNew: true,
+    lowStock: true,
+  },
+  {
+    id: "hello-kitty-classic",
+    slug: "hello-kitty-classic",
+    title: "Hello Kitty Classic",
+    price: 299900,
+    thumbnail: "/images/products/hello-kitty-classic.jpg",
+    isNew: true,
+    lowStock: true,
+  },
+  {
+    id: "hello-kitty-heart",
+    slug: "hello-kitty-heart",
+    title: "Hello Kitty Heart",
+    price: 299900,
+    thumbnail: "/images/products/hello-kitty-heart.jpg",
+    isNew: true,
+    lowStock: true,
+  },
+  {
+    id: "hello-kitty-love",
+    slug: "hello-kitty-love",
+    title: "Hello Kitty <3",
+    price: 299900,
+    thumbnail: "/images/products/hello-kitty-love.jpg",
+    isNew: true,
+    lowStock: true,
+  },
+  {
+    id: "kuromi-love",
+    slug: "kuromi-love",
+    title: "Kuromi Love",
+    price: 309900,
+    thumbnail: "/images/products/kuromi-love.jpg",
+    isNew: true,
+    lowStock: true,
+  },
+];
+
+/* Helpers para grupos */
+
+export const STANDARD_PRODUCTS = LOCAL_PRODUCTS.filter(
+  (p) => !p.slug.startsWith("hello-kitty") && !p.slug.startsWith("kuromi")
+);
+
+export const HELLO_KITTY_PRODUCTS = LOCAL_PRODUCTS.filter(
+  (p) => p.slug.startsWith("hello-kitty") || p.slug.startsWith("kuromi")
+);
+
+/* =========================
+   API COMPATIBLE
+   ========================= */
+
 type ListOpts =
   | number
   | {
@@ -23,81 +184,21 @@ type ListOpts =
       page?: number; // 1-based
       offset?: number; // 0-based
       q?: string;
-      category_id?: string; // ignorado en mock, pero lo dejamos
+      category_id?: string;
     };
 
-// ----------------- DATA MOCK -----------------
-
-// Acá armamos los Inchoriables a gusto.
-// Podés cambiar títulos, precios e imágenes sin problema.
-const MOCK_PRODUCTS: ProductCardProps[] = [
-  {
-    id: "inch-01",
-    slug: "inchoriable-black-chain",
-    title: "Inchoriable Black Chain",
-    price: 249900, // $2499,00
-    thumbnail: "/images/products/inchoriable-black-chain.jpg", // asegurate de tener algo en public/...
-    isNew: true,
-    lowStock: false,
-  },
-  {
-    id: "inch-02",
-    slug: "inchoriable-silver-drip",
-    title: "Inchoriable Silver Drip",
-    price: 269900,
-    thumbnail: "/images/products/inchoriable-silver-drip.jpg",
-    isNew: true,
-    lowStock: true,
-  },
-  {
-    id: "inch-03",
-    slug: "inchoriable-gold-night",
-    title: "Inchoriable Gold Night",
-    price: 299900,
-    thumbnail: "/images/products/inchoriable-gold-night.jpg",
-    isNew: false,
-    lowStock: false,
-  },
-  {
-    id: "inch-04",
-    slug: "inchoriable-gunmetal",
-    title: "Inchoriable Gunmetal",
-    price: 259900,
-    thumbnail: "/images/products/inchoriable-gunmetal.jpg",
-    isNew: false,
-    lowStock: true,
-  },
-  {
-    id: "inch-05",
-    slug: "inchoriable-spiked",
-    title: "Inchoriable Spiked Edition",
-    price: 279900,
-    thumbnail: "/images/products/inchoriable-spiked.jpg",
-    isNew: true,
-    lowStock: false,
-  },
-  {
-    id: "inch-06",
-    slug: "inchoriable-minimal",
-    title: "Inchoriable Minimal",
-    price: 219900,
-    thumbnail: "/images/products/inchoriable-minimal.jpg",
-    isNew: false,
-    lowStock: false,
-  },
-];
-
-// Si quisieras, acá podrías hacer una pequeña normalización extra,
-// pero el mock ya respeta ProductCardProps.
-
-// ----------------- Helpers internos -----------------
-
-function normalizeOpts(opts: ListOpts = 24): {
-  limit: number;
+export type PagedResult<T> = {
+  items: T[];
+  total: number;
   page: number;
+  perPage: number;
+  pages: number;
+  count: number;
+  limit: number;
   offset: number;
-  q?: string;
-} {
+};
+
+function resolvePagination(opts: ListOpts) {
   const limit = typeof opts === "number" ? opts : Math.max(1, opts.limit ?? 24);
 
   const page =
@@ -114,60 +215,24 @@ function normalizeOpts(opts: ListOpts = 24): {
       ? Math.max(0, opts.offset)
       : (page - 1) * limit;
 
-  const q = typeof opts === "number" ? undefined : opts.q;
-
-  return { limit, page, offset, q };
+  return { limit, page, offset };
 }
 
-function applySearch(products: ProductCardProps[], q?: string) {
-  if (!q || !q.trim()) return products;
-  const needle = q.trim().toLowerCase();
-  return products.filter((p) =>
-    `${p.title} ${p.slug}`.toLowerCase().includes(needle)
-  );
-}
-
-// ----------------- API pública (mock) -----------------
-
-/**
- * Lista simple de productos para el grid.
- * Mantiene la misma firma que antes, pero sin fetch.
- */
+/** Lista simple de productos (front-only) */
 export async function listProducts(
   opts: ListOpts = 24
 ): Promise<ProductCardProps[]> {
-  const { limit, offset, q } = normalizeOpts(opts);
-
-  const filtered = applySearch(MOCK_PRODUCTS, q);
-  const slice = filtered.slice(offset, offset + limit);
-
-  return slice;
+  const { items } = await listProductsPaged(opts);
+  return items;
 }
 
-// Resultado paginado (igual que antes)
-export type PagedResult<T> = {
-  items: T[];
-  total: number;
-  page: number; // 1-based
-  perPage: number;
-  pages: number;
-  // compat:
-  count: number;
-  limit: number;
-  offset: number;
-};
-
-/**
- * Igual que listProducts, pero con metadata de paginación.
- */
+/** Lista paginada (front-only) */
 export async function listProductsPaged(
   opts: ListOpts = 24
 ): Promise<PagedResult<ProductCardProps>> {
-  const { limit, page, offset, q } = normalizeOpts(opts);
-
-  const filtered = applySearch(MOCK_PRODUCTS, q);
-  const total = filtered.length;
-  const items = filtered.slice(offset, offset + limit);
+  const { limit, page, offset } = resolvePagination(opts);
+  const total = LOCAL_PRODUCTS.length;
+  const items = LOCAL_PRODUCTS.slice(offset, offset + limit);
   const pages = Math.max(1, Math.ceil(total / limit));
 
   return {
@@ -176,42 +241,29 @@ export async function listProductsPaged(
     page,
     perPage: limit,
     pages,
-    // compat:
     count: total,
     limit,
     offset,
   };
 }
 
-/**
- * Detalle por handle/slug (para PDP).
- * Busca en el mock por slug o id.
- */
+/** Detalle por handle/slug para la PDP */
 export async function getProductByHandle(handle: string) {
-  const prod =
-    MOCK_PRODUCTS.find(
-      (p) =>
-        p.slug.toLowerCase() === handle.toLowerCase() ||
-        p.id.toLowerCase() === handle.toLowerCase()
-    ) || null;
+  const prod = LOCAL_PRODUCTS.find((p) => p.slug === handle || p.id === handle);
 
-  if (!prod) {
+  if (!prod)
     return {
       raw: null,
       card: null as unknown as ProductCardProps,
     };
-  }
 
   return {
     raw: prod,
-    card: prod,
+    card: prod as ProductCardProps,
   };
 }
 
-/**
- * Helper que usa Home:
- *   const { products } = await getProducts(24, 0)
- */
+/** Helper que usa el Home: como antes, pero 100% local */
 export async function getProducts(
   limit: number = 24,
   offset: number = 0
@@ -221,11 +273,12 @@ export async function getProducts(
   limit: number;
   offset: number;
 }> {
-  const { items, count } = await listProductsPaged({ limit, offset });
+  const total = LOCAL_PRODUCTS.length;
+  const items = LOCAL_PRODUCTS.slice(offset, offset + limit);
 
   return {
     products: items,
-    count,
+    count: total,
     limit,
     offset,
   };

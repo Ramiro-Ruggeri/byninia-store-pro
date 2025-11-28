@@ -1,4 +1,6 @@
 "use client";
+import { motion } from "framer-motion";
+
 import { useRef } from "react";
 
 export default function Magnetic({

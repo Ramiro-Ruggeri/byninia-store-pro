@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
 
 export type ProductCardProps = {
   id: string;
@@ -57,7 +58,15 @@ export default function ProductCard({
   const [src, setSrc] = useState<string>(initialSrc);
 
   return (
-    <article className="group rounded-3xl border border-white/10 bg-by-card shadow-innerSoft overflow-hidden">
+    <motion.article
+      className="group rounded-3xl border border-white/10 bg-by-card shadow-innerSoft overflow-hidden"
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      whileHover={{ y: -6 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+    >
       <Link
         href={href}
         aria-label={`Ver ${title}`}
@@ -92,8 +101,8 @@ export default function ProductCard({
           )}
         </div>
 
-        <div className="p-4 flex items-center justify-between">
-          <h3 className="text-white font-semibold leading-tight line-clamp-2 pr-3">
+        <div className="p-4 flex items-center justify-between gap-3">
+          <h3 className="text-white font-semibold leading-tight line-clamp-2">
             {title}
           </h3>
           <span className="text-white/90 text-sm font-bold whitespace-nowrap">
@@ -101,6 +110,6 @@ export default function ProductCard({
           </span>
         </div>
       </Link>
-    </article>
+    </motion.article>
   );
 }

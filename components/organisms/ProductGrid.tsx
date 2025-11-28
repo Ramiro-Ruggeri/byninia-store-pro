@@ -15,7 +15,7 @@ export default function ProductGrid({ products }: Props) {
     return (
       <section
         aria-label="Listado de productos vacío"
-        className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-white/70"
+        className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-white/70 text-sm md:text-base"
       >
         No hay diseños disponibles por ahora.
       </section>
@@ -25,7 +25,7 @@ export default function ProductGrid({ products }: Props) {
   return (
     <section
       aria-label="Listado de productos"
-      className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+      className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 auto-rows-fr"
     >
       {products.map((p, idx) => (
         <ProductCard
