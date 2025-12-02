@@ -136,6 +136,11 @@ function FinalCTA() {
   const SecondaryBtn =
     "rounded-lg px-8 py-3 text-lg border-2 border-white/20 text-white/80 hover:border-white/40 transition-colors hover:text-white";
 
+  // Mensaje cool, predefinido para BYNINIA
+  const msg = encodeURIComponent(
+    "Hola! 👋 Caigo desde la web de BYNINIA. Quiero consultar por los Inchoriables (portaencendedor con cadena) para subirle el level a mi outfit nocturno. ¿Hay stock? Soy [tu nombre] de [tu ciudad]."
+  );
+
   return (
     <section className="mx-auto max-w-7xl px-4 mt-24 mb-16">
       <div
@@ -153,20 +158,24 @@ function FinalCTA() {
           </span>{" "}
           de tu outfit nocturno?
         </h3>
+
         <p className="p-body max-w-2xl mx-auto mt-4">
           Inchoriables BYNINIA – Accesorios diseñados para la noche. Ediciones
           limitadas, producción local en Córdoba.
         </p>
+
         <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
           <Link
-            href="/products"
+            href="/catalog"
             className={PrimaryBtn}
             style={{ background: "rgb(var(--color-accent))" }}
           >
             Ver Catálogo
           </Link>
+
+          {/* Botón de WhatsApp con número correcto + mensaje predefinido */}
           <a
-            href="https://wa.me/5493510000000"
+            href={`https://wa.me/5493874126730?text=${msg}`}
             target="_blank"
             rel="noreferrer"
             className={SecondaryBtn}
@@ -227,7 +236,7 @@ export default async function Home() {
         </section>
       )}
 
-      {/* 4) Marquee – ahora full width */}
+      {/* 4) Marquee – full width */}
       <section className="w-full mt-24">
         <Marquee
           items={[

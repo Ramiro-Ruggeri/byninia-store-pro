@@ -7,6 +7,8 @@ export type ProductCardProps = {
   title: string;
   price: number; // en centavos
   thumbnail?: string;
+  /** Imágenes extra para la PDP (ProductGallery). */
+  images?: { url: string }[];
   isNew?: boolean;
   lowStock?: boolean;
 };
@@ -19,21 +21,32 @@ export type ProductCardProps = {
  * Las imágenes deben existir en:
  *   /public/images/products/...
  *
- * Ejemplos:
- *   /public/images/products/rockstar.jpg
- *   /public/images/products/gatacool.jpg
- *   /public/images/products/ferne.jpg
- *   /public/images/products/conejorock.jpg
- *   /public/images/products/ung.jpg
- *   /public/images/products/noesperes.jpg
- *   /public/images/products/hotchilli.jpg
- *   /public/images/products/bandida.jpg
+ * Core (Inchoriables):
+ *   rockstar.jpg
+ *   rockstar2.jpg
+ *   gatacool.jpg
+ *   gatacool2.jpg
+ *   ferne.jpg
+ *   ferne2.jpg
+ *   conejorock.jpg
+ *   conejorock2.jpg
+ *   ung.jpg
+ *   ung2.jpg
+ *   noesperes.jpg
+ *   noesperes2.jpg
+ *   hotchilli.jpg
+ *   bandida1.jpg
+ *   bandida2.jpg
  *
- *   /public/images/products/hello-kitty-flower.jpg
- *   /public/images/products/hello-kitty-classic.jpg
- *   /public/images/products/hello-kitty-heart.jpg
- *   /public/images/products/hello-kitty-love.jpg
- *   /public/images/products/kuromi-love.jpg
+ * Edición limitada:
+ *   helloKittyFlower.jpg
+ *   helloKittyClassic.jpg
+ *   helloKittyHeart.jpg
+ *   helloKittyHeart2.jpg
+ *   helloKittyLove.jpg
+ *   kuromiLove.jpg
+ *   kuromiLove(1).jpg
+ *   kuromiLove(2).jpg
  */
 
 export const LOCAL_PRODUCTS: ProductCardProps[] = [
@@ -46,6 +59,7 @@ export const LOCAL_PRODUCTS: ProductCardProps[] = [
     title: "Inchoriable Rockstar",
     price: 249900,
     thumbnail: "/images/products/rockstar.jpg",
+    images: [{ url: "/images/products/rockstar2.jpg" }],
     isNew: true,
     lowStock: false,
   },
@@ -55,6 +69,7 @@ export const LOCAL_PRODUCTS: ProductCardProps[] = [
     title: "Inchoriable Gata Cool",
     price: 249900,
     thumbnail: "/images/products/gatacool.jpg",
+    images: [{ url: "/images/products/gatacool2.jpg" }],
     isNew: true,
     lowStock: false,
   },
@@ -64,6 +79,7 @@ export const LOCAL_PRODUCTS: ProductCardProps[] = [
     title: "Inchoriable Ferne’",
     price: 249900,
     thumbnail: "/images/products/ferne.jpg",
+    images: [{ url: "/images/products/ferne2.jpg" }],
     isNew: true,
     lowStock: false,
   },
@@ -73,6 +89,7 @@ export const LOCAL_PRODUCTS: ProductCardProps[] = [
     title: "Inchoriable Conejo Rock",
     price: 259900,
     thumbnail: "/images/products/conejorock.jpg",
+    images: [{ url: "/images/products/conejorock2.jpg" }],
     isNew: true,
     lowStock: true,
   },
@@ -82,6 +99,7 @@ export const LOCAL_PRODUCTS: ProductCardProps[] = [
     title: "Inchoriable Un G",
     price: 259900,
     thumbnail: "/images/products/ung.jpg",
+    images: [{ url: "/images/products/ung2.jpg" }],
     isNew: true,
     lowStock: false,
   },
@@ -91,6 +109,7 @@ export const LOCAL_PRODUCTS: ProductCardProps[] = [
     title: "No esperes nada de mí",
     price: 259900,
     thumbnail: "/images/products/noesperes.jpg",
+    images: [{ url: "/images/products/noesperes2.jpg" }],
     isNew: false,
     lowStock: true,
   },
@@ -100,6 +119,8 @@ export const LOCAL_PRODUCTS: ProductCardProps[] = [
     title: "Inchoriable Hot Chilli",
     price: 269900,
     thumbnail: "/images/products/hotchilli.jpg",
+    // Si más adelante tenés hotchilli2.jpg, lo agregás acá:
+    // images: [{ url: "/images/products/hotchilli2.jpg" }],
     isNew: true,
     lowStock: false,
   },
@@ -108,7 +129,8 @@ export const LOCAL_PRODUCTS: ProductCardProps[] = [
     slug: "bandida",
     title: "Inchoriable Bandida",
     price: 259900,
-    thumbnail: "/images/products/bandida.jpg",
+    thumbnail: "/images/products/bandida1.jpg",
+    images: [{ url: "/images/products/bandida2.jpg" }],
     isNew: true,
     lowStock: true,
   },
@@ -121,7 +143,7 @@ export const LOCAL_PRODUCTS: ProductCardProps[] = [
     slug: "hello-kitty-flower",
     title: "Hello Kitty Flower",
     price: 299900,
-    thumbnail: "/images/products/hello-kitty-flower.jpg",
+    thumbnail: "/images/products/helloKittyFlower.jpg",
     isNew: true,
     lowStock: true,
   },
@@ -130,7 +152,7 @@ export const LOCAL_PRODUCTS: ProductCardProps[] = [
     slug: "hello-kitty-classic",
     title: "Hello Kitty Classic",
     price: 299900,
-    thumbnail: "/images/products/hello-kitty-classic.jpg",
+    thumbnail: "/images/products/helloKittyClassic.jpg",
     isNew: true,
     lowStock: true,
   },
@@ -139,7 +161,8 @@ export const LOCAL_PRODUCTS: ProductCardProps[] = [
     slug: "hello-kitty-heart",
     title: "Hello Kitty Heart",
     price: 299900,
-    thumbnail: "/images/products/hello-kitty-heart.jpg",
+    thumbnail: "/images/products/helloKittyHeart.jpg",
+    images: [{ url: "/images/products/helloKittyHeart2.jpg" }],
     isNew: true,
     lowStock: true,
   },
@@ -148,7 +171,7 @@ export const LOCAL_PRODUCTS: ProductCardProps[] = [
     slug: "hello-kitty-love",
     title: "Hello Kitty <3",
     price: 299900,
-    thumbnail: "/images/products/hello-kitty-love.jpg",
+    thumbnail: "/images/products/helloKittyLove.jpg",
     isNew: true,
     lowStock: true,
   },
@@ -157,7 +180,11 @@ export const LOCAL_PRODUCTS: ProductCardProps[] = [
     slug: "kuromi-love",
     title: "Kuromi Love",
     price: 309900,
-    thumbnail: "/images/products/kuromi-love.jpg",
+    thumbnail: "/images/products/kuromiLove.jpg",
+    images: [
+      { url: "/images/products/kuromiLove(1).jpg" },
+      { url: "/images/products/kuromiLove(2).jpg" },
+    ],
     isNew: true,
     lowStock: true,
   },

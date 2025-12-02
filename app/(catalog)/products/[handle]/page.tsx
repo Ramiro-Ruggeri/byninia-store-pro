@@ -1,87 +1,134 @@
-// app/(catalog)/products/page.tsx
+// app/(catalog)/products/[handle]/page.tsx
+import { notFound } from "next/navigation";
 import Link from "next/link";
-import type { UrlObject } from "url";
-import ProductGrid from "@/components/organisms/ProductGrid";
-import { listProductsPaged } from "@/lib/medusa-data";
+import { listProducts } from "@/lib/medusa-data";
+import ProductGallery from "@/components/organisms/ProductGallery";
+import { ChevronLeft } from "lucide-react";
 
-type Search = Record<string, string | string[] | undefined>;
+type Params = {
+  handle: string;
+};
 
-export default async function ProductsPage({
-  searchParams,
-}: {
-  searchParams?: Search;
-}) {
-  const limit = 24;
+export default async function ProductPage({ params }: { params: Params }) {
+  const all = await listProducts();
+  const product = all.find((p: any) => p.slug === params.handle);
 
-  // --- sanitize de query ---
-  const rawQ = searchParams?.q;
-  const q =
-    typeof rawQ === "string" && rawQ.trim().length > 0
-      ? rawQ.trim()
-      : undefined;
+  if (!product) {
+    notFound();
+  }
 
-  const rawOffset = searchParams?.offset;
-  const offset =
-    typeof rawOffset === "string" && !Number.isNaN(Number(rawOffset))
-      ? Math.max(0, Number(rawOffset))
-      : 0;
+  const title: string = product.title ?? "Producto BYNINIA";
+  const price: number = product.price ?? 0;
 
-  // --- datos paginados ---
-  const { items, total } = await listProductsPaged({ q, limit, offset });
+  // Construimos array de imágenes:
+  // - primero thumbnail
+  // - luego (si existen) las imágenes extra (limitamos a 2 en total)
+  const images: { url: string; alt: string }[] = [];
 
-  const hasPrev = offset > 0;
-  const hasNext = offset + limit < total;
+  if (product.thumbnail) {
+    images.push({ url: product.thumbnail, alt: title });
+  }
 
-  // --- helper para Links compatible con typedRoutes ---
-  const makeHref = (nextOffset: number): UrlObject => ({
-    pathname: "/products",
-    query: {
-      ...(q ? { q } : {}),
-      offset: Math.max(0, nextOffset),
-    },
-  });
+  const extraImages =
+    (product as any).images && Array.isArray((product as any).images)
+      ? (product as any).images
+      : [];
+
+  for (const img of extraImages) {
+    if (img?.url && images.length < 2) {
+      images.push({ url: img.url, alt: title });
+    }
+  }
+
+  if (images.length === 0) {
+    images.push({
+      url: "/placeholder-product.jpg",
+      alt: "BYNINIA",
+    });
+  }
+
+  // Formateo de precio
+  const formattedPrice = new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    maximumFractionDigits: 0,
+  }).format(Math.round(price / 100 || 0));
 
   return (
-    <main className="container mx-auto px-4 py-10">
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl md:text-3xl font-semibold">
-          {q ? `Resultados para “${q}”` : "Productos"}
-        </h1>
-        {typeof q === "string" && q.length > 0 && (
-          <span className="text-sm text-white/60">
-            {items.length} / {total}
-          </span>
-        )}
+    <main className="mx-auto max-w-7xl px-4 py-10">
+      {/* Botón volver */}
+      <div className="mb-6">
+        <Link
+          href="/products"
+          className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition"
+        >
+          <ChevronLeft size={16} />
+          <span>Volver al catálogo</span>
+        </Link>
       </div>
 
-      <ProductGrid products={items} />
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] items-start">
+        {/* GALERÍA: imágenes + zoom + compartir */}
+        <ProductGallery images={images} title={title} />
 
-      {/* Paginación */}
-      <div className="flex items-center justify-between mt-10">
-        <Link
-          href={makeHref(offset - limit)}
-          aria-disabled={!hasPrev}
-          className={`rounded-lg border border-white/10 px-4 py-2 text-white/80 hover:text-white ${
-            hasPrev ? "" : "pointer-events-none opacity-40"
-          }`}
-        >
-          ← Anterior
-        </Link>
+        {/* INFO DEL PRODUCTO */}
+        <section className="space-y-6">
+          <header className="space-y-3">
+            <p className="text-xs uppercase tracking-[0.2em] text-white/50">
+              Accesorio BYNINIA · Edición limitada
+            </p>
+            <h1 className="text-3xl md:text-4xl font-extrabold leading-tight">
+              {title}
+            </h1>
+          </header>
 
-        <span className="text-white/60">
-          {Math.floor(offset / limit) + 1} /{" "}
-          {Math.max(1, Math.ceil(total / limit))}
-        </span>
+          <div className="space-y-1">
+            <p className="text-3xl md:text-4xl font-black text-white">
+              {formattedPrice}
+            </p>
+            <p className="text-xs uppercase tracking-[0.25em] text-white/50">
+              ARS · IMPUESTOS INCLUIDOS
+            </p>
+          </div>
 
-        <Link
-          href={makeHref(offset + limit)}
-          aria-disabled={!hasNext}
-          className={`rounded-lg border border-white/10 px-4 py-2 text-white/80 hover:text-white ${
-            hasNext ? "" : "pointer-events-none opacity-40"
-          }`}
-        >
-          Siguiente →
-        </Link>
+          <p className="text-sm md:text-base text-white/75 leading-relaxed">
+            Accesorio BYNINIA diseñado para la noche. Producción local en
+            Córdoba, vibe underground y detalle en metal pensado para que no se
+            pierda nunca más el encendedor.
+          </p>
+
+          <ul className="mt-4 space-y-2 text-sm text-white/80">
+            <li>• Acero premium &amp; construcción robusta.</li>
+            <li>• Edición limitada, producción underground.</li>
+            <li>• Anti-robo con estilo único.</li>
+          </ul>
+
+          {/* CTA */}
+          <div className="mt-6 space-y-3">
+            <form action={`/store/cart`} method="post" className="space-y-3">
+              {/* Esto depende de cómo tengas armado el carrito;
+                  deja el botón listo para conectar con tu acción */}
+              <button
+                type="submit"
+                className="w-full rounded-full bg-[rgb(var(--color-accent))] px-6 py-3 text-center text-base md:text-lg font-extrabold text-black shadow-lg shadow-[rgb(var(--color-accent))]/40 hover:brightness-110 transition"
+              >
+                Agregar al carrito
+              </button>
+            </form>
+
+            <Link
+              href="/products"
+              className="block w-full rounded-full border border-white/20 bg-transparent px-6 py-3 text-center text-sm font-semibold text-white/80 hover:bg-white/5 hover:text-white transition"
+            >
+              Seguir viendo productos
+            </Link>
+          </div>
+
+          <p className="mt-6 text-xs text-white/50 flex items-center gap-2">
+            <span className="inline-block h-2 w-2 rounded-full bg-[rgb(var(--color-accent))]" />
+            Underground hecho en Córdoba · Inchoriables BYNINIA
+          </p>
+        </section>
       </div>
     </main>
   );

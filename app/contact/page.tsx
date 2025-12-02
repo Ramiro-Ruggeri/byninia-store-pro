@@ -1,5 +1,5 @@
 // app/contact/page.tsx
-const WA = process.env.NEXT_PUBLIC_WA_PHONE || "5493510000000";
+const WA = process.env.NEXT_PUBLIC_WA_PHONE || "5493874126730";
 const IG = process.env.NEXT_PUBLIC_IG_HANDLE || "byninia";
 
 export default function ContactPage() {

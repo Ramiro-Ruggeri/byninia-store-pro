@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useCart } from "@/store/cart";
 
 /* ---------------- Helpers ---------------- */
-const FALLBACK_WA = "5493510000000";
+const FALLBACK_WA = "5493874126730";
 function getWaPhone(): string {
   const env = process.env.NEXT_PUBLIC_WA_PHONE?.trim();
   return env && /^\d+$/.test(env) ? env : FALLBACK_WA;

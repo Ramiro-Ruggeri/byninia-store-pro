@@ -12,7 +12,7 @@ function formatARS(cents: number) {
   }).format(Math.round(safe / 100));
 }
 
-const WA_PHONE = process.env.NEXT_PUBLIC_WA_PHONE || "5493510000000";
+const WA_PHONE = process.env.NEXT_PUBLIC_WA_PHONE || "5493874126730";
 function waUrl(text: string) {
   return `https://wa.me/${WA_PHONE}?text=${encodeURIComponent(text)}`;
 }

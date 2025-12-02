@@ -11,6 +11,12 @@ export const metadata = {
   title: "BYNINIA – Accesorios de cadena & metal",
   description:
     "Accesorios nocturnos de cadena & metal hechos en Argentina, pensados para subirle el nivel a cualquier outfit. Envíos a todo el país.",
+  // Favicon para la pestaña del navegador
+  icons: {
+    icon: "/favicon-byninia.ico", // archivo en /public
+    shortcut: "/favicon-byninia.ico",
+    apple: "/favicon-byninia.ico",
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -23,7 +29,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* Header sticky */}
         <Header />
 
-        {/* 
+        {/*
           main sin max-w ni padding global:
           - el Hero puede ocupar todo el ancho.
           - cada sección interna decide su propio container (max-w-7xl, etc.).

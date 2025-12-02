@@ -16,8 +16,10 @@ export default async function CatalogPage({
 }: {
   searchParams?: { q?: string; offset?: string };
 }) {
-  const q = searchParams?.q?.trim() || "";
-  const offset = Number(searchParams?.offset || 0) || 0;
+  const rawQ = searchParams?.q?.trim() || "";
+  const q = rawQ.length > 0 ? rawQ : "";
+  const rawOffset = Number(searchParams?.offset || 0);
+  const offset = Number.isFinite(rawOffset) && rawOffset > 0 ? rawOffset : 0;
   const limit = 24;
 
   const { items, count } = await listProductsPaged({ q, limit, offset });
@@ -25,16 +27,19 @@ export default async function CatalogPage({
   const hasNext = offset + limit < count;
 
   const makeHref = (nextOffset: number) => {
+    const safeOffset = Math.max(0, nextOffset);
     const sp = new URLSearchParams();
     if (q) sp.set("q", q);
-    if (nextOffset) sp.set("offset", String(nextOffset));
-    return `/catalog${sp.toString() ? `?${sp}` : ""}`;
+    if (safeOffset) sp.set("offset", String(safeOffset));
+    const query = sp.toString();
+    return `/catalog${query ? `?${query}` : ""}`;
   };
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <Title>Catálogo</Title>
+
         {/* buscador simple: usa GET y recarga server component */}
         <form action="/catalog" className="flex items-center gap-2">
           <input
@@ -66,18 +71,24 @@ export default async function CatalogPage({
       {/* paginación */}
       <div className="flex items-center justify-between mt-10">
         <Link
-          href={makeHref(Math.max(0, offset - limit))}
+          href={hasPrev ? makeHref(offset - limit) : "#"}
           aria-disabled={!hasPrev}
-          className={`rounded-lg border border-white/10 px-4 py-2 text-white/80 hover:text-white ${
+          className={`rounded-lg border border-white/10 px-4 py-2 text-white/80 hover:text-white transition ${
             hasPrev ? "" : "pointer-events-none opacity-40"
           }`}
         >
           ← Anterior
         </Link>
+
+        <span className="text-white/60">
+          {Math.floor(offset / limit) + 1} /{" "}
+          {Math.max(1, Math.ceil(count / limit))}
+        </span>
+
         <Link
-          href={makeHref(offset + limit)}
+          href={hasNext ? makeHref(offset + limit) : "#"}
           aria-disabled={!hasNext}
-          className={`rounded-lg border border-white/10 px-4 py-2 text-white/80 hover:text-white ${
+          className={`rounded-lg border border-white/10 px-4 py-2 text-white/80 hover:text-white transition ${
             hasNext ? "" : "pointer-events-none opacity-40"
           }`}
         >

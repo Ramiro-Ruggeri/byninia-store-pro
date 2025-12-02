@@ -1,7 +1,7 @@
 // components/organisms/CartDrawer.tsx
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import Image from "next/image";
 import Button from "@/components/atoms/Button";
 import { useCart } from "@/store/cart";
@@ -17,6 +17,72 @@ function formatARS(cents: number) {
 export default function CartDrawer() {
   // total ahora es un number (no una función)
   const { items, remove, open, toggle, total } = useCart();
+
+  const hasItems = Array.isArray(items) && items.length > 0;
+
+  // Mensaje humano + listado de productos
+  const plainMessage = useMemo(() => {
+    if (!hasItems) {
+      return (
+        "Hola BYNINIA 👋\n" +
+        "Vengo desde la web y quiero consultar por los Inchoriables.\n" +
+        "Todavía no tengo productos en el carrito, pero me gustaría ver modelos y stock. 🙌"
+      );
+    }
+
+    const intro =
+      "Hola BYNINIA 👋\n" +
+      "Vengo desde la web y quiero avanzar con este pedido de Inchoriables:\n";
+
+    const lines = items
+      .map((i: any) => {
+        const title = String(i?.title ?? "Producto");
+        const qty = Number(i?.quantity ?? 1) || 1;
+        const priceCents = Number(i?.price ?? 0) || 0;
+        const lineTotal = priceCents * qty;
+        return `• ${title} x${qty} — ${formatARS(lineTotal)}`;
+      })
+      .join("\n");
+
+    const totalLine = `\n\nTotal aprox.: ${formatARS(total)}`;
+
+    const outro =
+      "\n\n¿Me confirmás stock, formas de pago y envío? 🙌\n" +
+      "Soy [tu nombre] y estoy en [tu ciudad].";
+
+    return `${intro}${lines}${totalLine}${outro}`;
+  }, [items, total, hasItems]);
+
+  const encodedMessage = encodeURIComponent(plainMessage);
+
+  // Número de WhatsApp BYNINIA
+  const WA_PHONE = "5493874126730";
+  const waUrl = `https://wa.me/${WA_PHONE}?text=${encodedMessage}`;
+
+  // URL del Instagram de la marca (configurable por env)
+  const IG_PROFILE_URL =
+    process.env.NEXT_PUBLIC_IG_URL ||
+    "https://www.instagram.com/tu_usuario_byninia";
+
+  const handleWhatsAppClick = () => {
+    if (typeof window !== "undefined") {
+      window.open(waUrl, "_blank");
+    }
+  };
+
+  const handleInstagramClick = async () => {
+    if (typeof window === "undefined") return;
+
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(plainMessage);
+      }
+    } catch {
+      // si falla el clipboard, no rompemos nada; solo abrimos IG
+    }
+
+    window.open(IG_PROFILE_URL, "_blank");
+  };
 
   // Evitamos template strings largos que a veces se rompen al copiar
   const classes =
@@ -39,7 +105,7 @@ export default function CartDrawer() {
       </header>
 
       <div className="mt-4 space-y-4 overflow-y-auto max-h-[70vh] pr-2">
-        {items.map((i) => (
+        {items.map((i: any) => (
           <div key={i.id} className="flex gap-3 items-center">
             {i.thumbnail && (
               <Image
@@ -70,18 +136,35 @@ export default function CartDrawer() {
         )}
       </div>
 
-      <footer className="mt-6 space-y-3">
+      <footer className="mt-6 space-y-4">
         <div className="flex justify-between text-lg">
           <span>Total</span>
-          {/* 👇 usar total como number + ARS */}
           <span>{formatARS(total)}</span>
         </div>
-        <Button
-          className="w-full"
-          onClick={() => (location.href = "/checkout")}
-        >
-          Ir a pagar
-        </Button>
+
+        {hasItems && (
+          <>
+            {/* Botón principal: WhatsApp */}
+            <Button className="w-full" onClick={handleWhatsAppClick}>
+              Finalizar pedido por WhatsApp
+            </Button>
+
+            {/* Botón secundario: Instagram */}
+            <button
+              type="button"
+              onClick={handleInstagramClick}
+              className="w-full rounded-2xl border border-white/20 px-5 py-3 text-sm font-medium text-white hover:border-white/40 transition"
+            >
+              Seguir por Instagram (mensaje copiado)
+            </button>
+
+            <p className="text-[11px] text-white/40 text-center leading-snug">
+              Te abrimos WhatsApp o Instagram con el pedido listo para enviar.
+              En Instagram, el mensaje queda copiado para que lo pegues en el
+              chat. 🔥
+            </p>
+          </>
+        )}
       </footer>
     </aside>
   );
