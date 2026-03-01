@@ -143,7 +143,7 @@ export const LOCAL_PRODUCTS: ProductCardProps[] = [
     slug: "hello-kitty-flower",
     title: "Hello Kitty Flower",
     price: 299900,
-    thumbnail: "/images/products/helloKittyFlower.jpg",
+    thumbnail: "/images/products/hellokittyflower.jpg",
     isNew: true,
     lowStock: true,
   },
